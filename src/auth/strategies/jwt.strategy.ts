@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service';
+import { Role } from '../../users/entities/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,6 +23,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
-    return user;
+    
+    // Añadir el role basado en is_admin pero sin modificar el objeto user original
+    return {
+      ...user,
+      // Añadir role como 'admin' si is_admin es true
+      role: user.is_admin ? 'admin' : 'user'
+    };
   }
 }

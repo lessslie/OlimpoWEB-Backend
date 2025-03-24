@@ -23,16 +23,16 @@ export class Post {
   content: string;
 
   @ApiProperty({ example: 'https://example.com/images/post-image.jpg', required: false })
-  featured_image?: string;
+  image_url?: string;
+
+  @ApiProperty({ example: 'Extracto corto del texto...' })
+  excerpt?: string;
 
   @ApiProperty({ example: ['musculación', 'entrenamiento', 'salud'], required: false })
   tags?: string[];
 
-  @ApiProperty({ enum: PostStatus, example: PostStatus.PUBLISHED })
-  status: PostStatus;
-
-  @ApiProperty({ example: '2025-03-22T00:00:00.000Z' })
-  published_at?: Date;
+  @ApiProperty({ example: true })
+  published: boolean;
 
   @ApiProperty({ example: '2025-03-22T00:00:00.000Z' })
   created_at: Date;

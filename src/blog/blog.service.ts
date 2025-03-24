@@ -32,38 +32,41 @@ export class BlogService {
         .select('slug')
         .eq('slug', slug)
         .maybeSingle();
-
+  
       // Si ya existe un post con el mismo slug, añadir un sufijo único
       let finalSlug = slug;
       if (existingPost) {
         finalSlug = `${slug}-${Date.now()}`;
       }
-
+  
+      // Generar automáticamente un extracto del contenido
+      const excerpt = createPostDto.content.substring(0, 150) + '...';
+  
       // Preparar datos para insertar
       const postData = {
         author_id: authorId,
         title: createPostDto.title,
         slug: finalSlug,
         content: createPostDto.content,
-        featured_image: createPostDto.featured_image,
+        image_url: createPostDto.image_url,
+        excerpt: excerpt,
         tags: createPostDto.tags || [],
-        status: createPostDto.status || PostStatus.DRAFT,
-        published_at: createPostDto.status === PostStatus.PUBLISHED ? new Date().toISOString() : null,
+        published: createPostDto.status === PostStatus.PUBLISHED,
       };
-
+  
       const { data, error } = await this.supabase
         .from('blog_posts')
         .insert([postData])
         .select()
         .single();
-
+  
       if (error) {
         throw new HttpException(
           `Error al crear el post: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
+  
       return data;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -75,28 +78,29 @@ export class BlogService {
       );
     }
   }
-
   async findAll(status?: PostStatus): Promise<Post[]> {
     try {
       let query = this.supabase
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
-
-      // Si se especifica un estado, filtrar por ese estado
+  
+      // Si se especifica un estado, filtrar por published
       if (status) {
-        query = query.eq('status', status);
+        // Convertir el enum PostStatus a boolean para el campo published
+        const isPublished = status === PostStatus.PUBLISHED;
+        query = query.eq('published', isPublished);
       }
-
+  
       const { data, error } = await query;
-
+  
       if (error) {
         throw new HttpException(
           `Error al obtener los posts: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
+  
       return data;
     } catch (error) {
       throw new HttpException(
@@ -107,7 +111,27 @@ export class BlogService {
   }
 
   async findPublished(): Promise<Post[]> {
-    return this.findAll(PostStatus.PUBLISHED);
+    try {
+      const { data, error } = await this.supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('published', true)
+        .order('created_at', { ascending: false });
+  
+      if (error) {
+        throw new HttpException(
+          `Error al obtener los posts publicados: ${error.message}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+  
+      return data;
+    } catch (error) {
+      throw new HttpException(
+        `Error al obtener los posts publicados: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async findOne(id: string): Promise<Post> {
@@ -182,7 +206,7 @@ export class BlogService {
     try {
       // Verificar si el post existe
       await this.findOne(id);
-
+  
       // Si se actualiza el título, actualizar también el slug
       let updateData: any = { ...updatePostDto };
       
@@ -196,43 +220,41 @@ export class BlogService {
           .eq('slug', slug)
           .neq('id', id)
           .maybeSingle();
-
+  
         // Si ya existe otro post con el mismo slug, añadir un sufijo único
         let finalSlug = slug;
         if (existingPost) {
           finalSlug = `${slug}-${Date.now()}`;
         }
-
+  
         updateData.slug = finalSlug;
       }
-
-      // Si se cambia el estado a PUBLISHED, actualizar la fecha de publicación
-      if (updatePostDto.status === PostStatus.PUBLISHED) {
-        const { data: currentPost } = await this.supabase
-          .from('blog_posts')
-          .select('status, published_at')
-          .eq('id', id)
-          .single();
-
-        if (currentPost && currentPost.status !== PostStatus.PUBLISHED) {
-          updateData.published_at = new Date().toISOString();
-        }
+  
+      // Si se actualiza el contenido, actualizar también el excerpt
+      if (updatePostDto.content) {
+        updateData.excerpt = updatePostDto.content.substring(0, 150) + '...';
       }
-
+  
+      // Si se cambia el status, actualizar el campo published
+      if (updatePostDto.status !== undefined) {
+        updateData.published = updatePostDto.status === PostStatus.PUBLISHED;
+        delete updateData.status; // Eliminar el campo status que no existe en la tabla
+      }
+  
       const { data, error } = await this.supabase
         .from('blog_posts')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
-
+  
       if (error) {
         throw new HttpException(
           `Error al actualizar el post: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
+  
       return data;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -328,24 +350,23 @@ export class BlogService {
     try {
       // Verificar si el post existe
       await this.findOne(id);
-
+  
       const { data, error } = await this.supabase
         .from('blog_posts')
         .update({
-          status: PostStatus.PUBLISHED,
-          published_at: new Date().toISOString(),
+          published: true,
         })
         .eq('id', id)
         .select()
         .single();
-
+  
       if (error) {
         throw new HttpException(
           `Error al publicar el post: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
+  
       return data;
     } catch (error) {
       if (error instanceof HttpException) {
@@ -357,28 +378,28 @@ export class BlogService {
       );
     }
   }
-
+  
   async unpublishPost(id: string): Promise<Post> {
     try {
       // Verificar si el post existe
       await this.findOne(id);
-
+  
       const { data, error } = await this.supabase
         .from('blog_posts')
         .update({
-          status: PostStatus.DRAFT,
+          published: false,
         })
         .eq('id', id)
         .select()
         .single();
-
+  
       if (error) {
         throw new HttpException(
           `Error al despublicar el post: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
+  
       return data;
     } catch (error) {
       if (error instanceof HttpException) {

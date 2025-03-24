@@ -19,7 +19,7 @@ export class CreatePostDto {
   @ApiProperty({ example: 'https://example.com/images/post-image.jpg', required: false })
   @IsOptional()
   @IsUrl({}, { message: 'La imagen destacada debe ser una URL válida' })
-  featured_image?: string;
+  image_url?: string;
 
   @ApiProperty({ example: ['musculación', 'entrenamiento', 'salud'], required: false })
   @IsOptional()

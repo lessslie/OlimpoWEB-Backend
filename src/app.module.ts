@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm'; // Añadir esta importación
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -15,6 +16,25 @@ import { UploadsModule } from './uploads/uploads.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Disponible en toda la aplicación
+    }),
+    // Añadir esta configuración de TypeORM
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
+        return {
+          type: 'postgres',
+          url: databaseUrl,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: configService.get('NODE_ENV') !== 'production',
+          ssl: {
+            rejectUnauthorized: false
+          },
+          // Añade un timeout más largo
+          connectTimeoutMS: 10000
+        };
+      },
     }),
     AuthModule,
     UsersModule,
