@@ -44,7 +44,7 @@ export class BlogService {
   
       // Preparar datos para insertar
       const postData = {
-        author_id: authorId,
+        author_id: null,
         title: createPostDto.title,
         slug: finalSlug,
         content: createPostDto.content,
