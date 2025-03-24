@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: olimpo-backend-prod
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    ports:
+      - "${PORT:-3000}:3000"
+    command: node dist/main
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    restart: always
+    networks:
+      - olimpo-network
+
+networks:
+  olimpo-network:
+    driver: bridge
