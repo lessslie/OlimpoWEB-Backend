@@ -222,10 +222,17 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
     try {
       // Verificar si el producto existe
       await this.findOne(id);
-
-      // Si se actualiza el nombre, actualizar también el slug
+  
+      // Crear un objeto con los datos a actualizar
       let updateData: any = { ...updateProductDto };
       
+      // Mapear image a image_url si existe
+      if (updateData.image) {
+        updateData.image_url = updateData.image;
+        delete updateData.image; // Eliminar la propiedad image que no existe en la tabla
+      }
+      
+      // Si se actualiza el nombre, actualizar también el slug
       if (updateProductDto.name) {
         const slug = slugify(updateProductDto.name, { lower: true, strict: true });
         
@@ -236,31 +243,58 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
           .eq('slug', slug)
           .neq('id', id)
           .maybeSingle();
-
+  
         // Si ya existe otro producto con el mismo slug, añadir un sufijo único
         let finalSlug = slug;
         if (existingProduct) {
           finalSlug = `${slug}-${Date.now()}`;
         }
-
+  
         updateData.slug = finalSlug;
       }
-
+  
+      // Mapear category a category_id si existe
+      if (updateData.category) {
+        const { data: categoryData } = await this.supabase
+          .from('product_categories')
+          .select('id')
+          .eq('name', updateData.category)
+          .single();
+          
+        if (categoryData) {
+          updateData.category_id = categoryData.id;
+        }
+        
+        delete updateData.category;
+      }
+  
+      // Mapear available a stock si existe
+      if (updateData.available !== undefined) {
+        updateData.stock = updateData.available ? 10 : 0;
+        delete updateData.available;
+      }
+  
       const { data, error } = await this.supabase
         .from('products')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
-
+  
       if (error) {
         throw new HttpException(
           `Error al actualizar el producto: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
-      return data;
+  
+      // Transformar el resultado para que coincida con el formato esperado
+      return {
+        ...data,
+        image: data.image_url,
+        available: data.stock > 0,
+        category: await this.getCategoryNameById(data.category_id)
+      };
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
