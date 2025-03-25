@@ -37,7 +37,9 @@ export class MembershipsService {
       if (createMembershipDto.type === MembershipType.MONTHLY) {
         // Para membresías mensuales, agregar 30 días
         endDate.setDate(startDate.getDate() + 30);
-      } else if (createMembershipDto.type === MembershipType.KICKBOXING) {
+      } else if (createMembershipDto.type === MembershipType.KICKBOXING_1 || 
+                 createMembershipDto.type === MembershipType.KICKBOXING_2 || 
+                 createMembershipDto.type === MembershipType.KICKBOXING_3) {
         // Para membresías de kickboxing, verificar que se especifiquen los días por semana
         if (!createMembershipDto.days_per_week) {
           throw new HttpException(
@@ -449,19 +451,16 @@ El equipo de Olimpo Gym`,
 
       if (
         membership.type === MembershipType.MONTHLY ||
-        membership.type === MembershipType.KICKBOXING
+        membership.type === MembershipType.KICKBOXING_1 ||
+        membership.type === MembershipType.KICKBOXING_2 ||
+        membership.type === MembershipType.KICKBOXING_3
       ) {
         // Para membresías mensuales o kickboxing, agregar 30 días
         newEndDate.setDate(currentEndDate.getDate() + 30);
-      } else if (membership.type === MembershipType.QUARTERLY) {
-        // Para membresías trimestrales, agregar 90 días
-        newEndDate.setDate(currentEndDate.getDate() + 90);
-      } else if (membership.type === MembershipType.BIANNUAL) {
-        // Para membresías semestrales, agregar 180 días
-        newEndDate.setDate(currentEndDate.getDate() + 180);
-      } else if (membership.type === MembershipType.ANNUAL) {
-        // Para membresías anuales, agregar 365 días
-        newEndDate.setDate(currentEndDate.getDate() + 365);
+      } else {
+        // Para cualquier otro tipo de membresía, agregar 30 días por defecto
+        // Nota: En tu esquema de base de datos actual no hay tipos trimestrales, semestrales o anuales
+        newEndDate.setDate(currentEndDate.getDate() + 30);
       }
 
       // Actualizar la membresía con la nueva fecha de finalización
