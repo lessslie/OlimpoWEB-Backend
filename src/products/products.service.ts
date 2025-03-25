@@ -43,7 +43,7 @@ export class ProductsService {
     const { data: categoryData } = await this.supabase
     .from('product_categories')
     .select('id')
-    .eq('name', createProductDto.category)
+    .eq('name', createProductDto.category_id)
     .single();
 
   // Preparar datos para insertar con mapeo correcto
@@ -53,8 +53,8 @@ export class ProductsService {
     description: createProductDto.description,
     price: createProductDto.price,
     image_url: createProductDto.image, // Mapear image a image_url
-    category_id: categoryData?.id, // Usar category_id en lugar de category
-    stock: createProductDto.available ? 10 : 0, // Convertir available a stock
+    category_id: categoryData?.id, // Usar category_id en lugar de category_id
+    stock: createProductDto.stock ? 10 : 0, // Convertir stock a stock
     is_featured: false // Valor predeterminado
   };  
       const { data, error } = await this.supabase
@@ -82,33 +82,48 @@ export class ProductsService {
     }
   }
 
-  async findAll(category?: ProductCategory, onlyAvailable = false): Promise<Product[]> {
+  async findAll(category_id?: ProductCategory, onlyAvailable = false): Promise<Product[]> {
     try {
       let query = this.supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
-
+  
       // Si se especifica una categoría, filtrar por esa categoría
-      if (category) {
-        query = query.eq('category', category);
+      if (category_id) {
+        // Primero buscar el ID de la categoría
+        const { data: categoryData } = await this.supabase
+          .from('product_categories')
+          .select('id')
+          .eq('name', category_id)
+          .single();
+          
+        if (categoryData) {
+          query = query.eq('category_id', categoryData.id);
+        }
       }
-
-      // Si se solicita solo productos disponibles, filtrar por disponibilidad
+  
+      // Si se solicita solo productos disponibles, filtrar por stock mayor a 0
+      // en lugar de usar el campo "stock" que no existe
       if (onlyAvailable) {
-        query = query.eq('available', true);
+        query = query.gt('stock', 0);
       }
-
+  
       const { data, error } = await query;
-
+  
       if (error) {
         throw new HttpException(
           `Error al obtener los productos: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-
-      return data;
+  
+      // Transformar los resultados para que coincidan con la estructura esperada
+      return data.map(product => ({
+        ...product,
+        stock: product.stock > 0,
+        category_id: this.getCategoryNameById(product.category_id) // Necesitarías implementar este método
+      }));
     } catch (error) {
       throw new HttpException(
         `Error al obtener los productos: ${error.message}`,
@@ -116,7 +131,25 @@ export class ProductsService {
       );
     }
   }
-
+  // Añade este método a tu ProductsService
+private async getCategoryNameById(categoryId: string): Promise<string> {
+  try {
+    const { data, error } = await this.supabase
+      .from('product_categories')
+      .select('name')
+      .eq('id', categoryId)
+      .single();
+    
+    if (error || !data) {
+      return 'uncategorized'; // Valor predeterminado si no se encuentra la categoría
+    }
+    
+    return data.name;
+  } catch (error) {
+    console.error('Error al obtener el nombre de la categoría:', error);
+    return 'uncategorized';
+  }
+}
   async findOne(id: string): Promise<Product> {
     try {
       const { data, error } = await this.supabase
@@ -266,8 +299,8 @@ export class ProductsService {
     }
   }
 
-  async findByCategory(category: ProductCategory): Promise<Product[]> {
-    return this.findAll(category, true);
+  async findByCategory(category_id: ProductCategory): Promise<Product[]> {
+    return this.findAll(category_id, true);
   }
 
   async toggleAvailability(id: string): Promise<Product> {
@@ -279,7 +312,7 @@ export class ProductsService {
       const { data, error } = await this.supabase
         .from('products')
         .update({
-          available: !product.available,
+          stock: !product.stock,
         })
         .eq('id', id)
         .select()

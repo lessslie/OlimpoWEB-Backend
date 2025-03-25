@@ -30,10 +30,10 @@ export class UpdateProductDto {
   @ApiProperty({ enum: ProductCategory, example: ProductCategory.SUPPLEMENTS, required: false })
   @IsOptional()
   @IsEnum(ProductCategory, { message: 'Categoría inválida' })
-  category?: ProductCategory;
+  category_id?: ProductCategory;
 
   @ApiProperty({ example: true, required: false })
   @IsOptional()
   @IsBoolean({ message: 'La disponibilidad debe ser un booleano' })
-  available?: boolean;
+  stock?: boolean;
 }

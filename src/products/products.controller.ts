@@ -39,10 +39,10 @@ export class ProductsController {
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los productos disponibles' })
-  @ApiQuery({ name: 'category', required: false, enum: ProductCategory })
+  @ApiQuery({ name: 'category_id', required: false, enum: ProductCategory })
   @ApiResponse({ status: 200, description: 'Lista de productos disponibles', type: [Product] })
-  async findAll(@Query('category') category?: ProductCategory) {
-    return await this.productsService.findAll(category, true);
+  async findAll(@Query('category_id') category_id?: ProductCategory) {
+    return await this.productsService.findAll(category_id, true);
   }
 
   @Get('all')
@@ -50,12 +50,12 @@ export class ProductsController {
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todos los productos (admin)' })
-  @ApiQuery({ name: 'category', required: false, enum: ProductCategory })
+  @ApiQuery({ name: 'category_id', required: false, enum: ProductCategory })
   @ApiResponse({ status: 200, description: 'Lista de todos los productos', type: [Product] })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
-  async findAllAdmin(@Query('category') category?: ProductCategory) {
-    return await this.productsService.findAll(category);
+  async findAllAdmin(@Query('category_id') category_id?: ProductCategory) {
+    return await this.productsService.findAll(category_id);
   }
 
   @Get('categories')
@@ -65,11 +65,11 @@ export class ProductsController {
     return await this.productsService.getAllCategories();
   }
 
-  @Get('category/:category')
+  @Get('category_id/:category_id')
   @ApiOperation({ summary: 'Obtener productos por categoría' })
   @ApiResponse({ status: 200, description: 'Lista de productos de la categoría especificada', type: [Product] })
-  async findByCategory(@Param('category') category: ProductCategory) {
-    return await this.productsService.findByCategory(category);
+  async findByCategory(@Param('category_id') category_id: ProductCategory) {
+    return await this.productsService.findByCategory(category_id);
   }
 
   @Get(':id')

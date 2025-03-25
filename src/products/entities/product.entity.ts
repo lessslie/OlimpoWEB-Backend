@@ -27,10 +27,10 @@ export class Product {
   image?: string;
 
   @ApiProperty({ enum: ProductCategory, example: ProductCategory.SUPPLEMENTS })
-  category: ProductCategory;
+  category_id: ProductCategory;
 
   @ApiProperty({ example: true })
-  available: boolean;
+  stock: boolean;
 
   @ApiProperty({ example: '2025-03-22T00:00:00.000Z' })
   created_at: Date;
