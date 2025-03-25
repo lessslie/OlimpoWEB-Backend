@@ -32,7 +32,11 @@ export class Membership {
   @ApiProperty({ example: '2025-04-22T00:00:00.000Z' })
   end_date: Date;
 
-  @ApiProperty({ example: 3, required: false, description: 'Días por semana (solo para membresías de kickboxing)' })
+  @ApiProperty({
+    example: 3,
+    required: false,
+    description: 'Días por semana (solo para membresías de kickboxing)',
+  })
   days_per_week?: number;
 
   @ApiProperty({ example: 5000 })
