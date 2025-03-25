@@ -39,17 +39,24 @@ export class ProductsService {
         finalSlug = `${slug}-${Date.now()}`;
       }
 
-      // Preparar datos para insertar
-      const productData = {
-        name: createProductDto.name,
-        slug: finalSlug,
-        description: createProductDto.description,
-        price: createProductDto.price,
-        image: createProductDto.image,
-        category: createProductDto.category,
-        available: createProductDto.available ?? true,
-      };
+      // Buscar el ID de la categoría basado en el nombre
+    const { data: categoryData } = await this.supabase
+    .from('product_categories')
+    .select('id')
+    .eq('name', createProductDto.category)
+    .single();
 
+  // Preparar datos para insertar con mapeo correcto
+  const productData = {
+    name: createProductDto.name,
+    slug: finalSlug,
+    description: createProductDto.description,
+    price: createProductDto.price,
+    image_url: createProductDto.image, // Mapear image a image_url
+    category_id: categoryData?.id, // Usar category_id en lugar de category
+    stock: createProductDto.available ? 10 : 0, // Convertir available a stock
+    is_featured: false // Valor predeterminado
+  };  
       const { data, error } = await this.supabase
         .from('products')
         .insert([productData])
