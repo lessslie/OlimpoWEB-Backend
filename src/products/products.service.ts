@@ -49,7 +49,7 @@ export class ProductsService {
   // Preparar datos para insertar con mapeo correcto
   const productData = {
     name: createProductDto.name,
-    slug: finalSlug,
+    
     description: createProductDto.description,
     price: createProductDto.price,
     image_url: createProductDto.image, // Mapear image a image_url
