@@ -226,33 +226,21 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
       // Crear un objeto con los datos a actualizar
       let updateData: any = { ...updateProductDto };
       
-      // Mapear image a image_url si existe
+      // Mapear o eliminar campos que no existen en la base de datos
       if (updateData.image) {
         updateData.image_url = updateData.image;
-        delete updateData.image; // Eliminar la propiedad image que no existe en la tabla
+        delete updateData.image;
       }
       
-      // Si se actualiza el nombre, actualizar también el slug
-      if (updateProductDto.name) {
-        const slug = slugify(updateProductDto.name, { lower: true, strict: true });
-        
-        // Verificar si ya existe otro producto con el mismo slug
-        const { data: existingProduct } = await this.supabase
-          .from('products')
-          .select('slug')
-          .eq('slug', slug)
-          .neq('id', id)
-          .maybeSingle();
-  
-        // Si ya existe otro producto con el mismo slug, añadir un sufijo único
-        let finalSlug = slug;
-        if (existingProduct) {
-          finalSlug = `${slug}-${Date.now()}`;
-        }
-  
-        updateData.slug = finalSlug;
+      // Eliminar cualquier referencia a slug
+      delete updateData.slug;
+      
+      // Mapear available a stock si existe
+      if (updateData.available !== undefined) {
+        updateData.stock = updateData.available ? 10 : 0;
+        delete updateData.available;
       }
-  
+      
       // Mapear category a category_id si existe
       if (updateData.category) {
         const { data: categoryData } = await this.supabase
@@ -266,12 +254,6 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
         }
         
         delete updateData.category;
-      }
-  
-      // Mapear available a stock si existe
-      if (updateData.available !== undefined) {
-        updateData.stock = updateData.available ? 10 : 0;
-        delete updateData.available;
       }
   
       const { data, error } = await this.supabase
@@ -288,12 +270,13 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
         );
       }
   
-      // Transformar el resultado para que coincida con el formato esperado
+      // Transformar el resultado para coincida con lo que espera el frontend
       return {
         ...data,
         image: data.image_url,
         available: data.stock > 0,
-        category: await this.getCategoryNameById(data.category_id)
+        category: await this.getCategoryNameById(data.category_id),
+        slug: slugify(data.name) // Generar el slug para el frontend si lo necesita
       };
     } catch (error) {
       if (error instanceof HttpException) {
