@@ -319,6 +319,20 @@ export class AttendanceController {
     description: 'Datos inválidos o usuario sin membresía activa',
   })
   @ApiResponse({ status: 500, description: 'Error interno del servidor' })
+  @Post('check-in')
+  @ApiOperation({
+    summary: 'Registrar asistencia mediante escaneo de QR (sin autenticación)',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Asistencia registrada correctamente',
+    type: Attendance,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Datos inválidos o usuario sin membresía activa',
+  })
+  @ApiResponse({ status: 500, description: 'Error interno del servidor' })
   async checkInWithQR(@Query('data') encodedData: string) {
     try {
       if (!encodedData) {

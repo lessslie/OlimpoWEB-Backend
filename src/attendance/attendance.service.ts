@@ -34,7 +34,7 @@ export class AttendanceService {
       );
 
       // Verificar si el usuario tiene una membresía activa
-      let activeMembership = null;
+      let activeMembership: any = null; // Cambiar a tipo 'any' para evitar errores de tipo
 
       try {
         const memberships = await this.membershipsService.findByUser(
@@ -42,9 +42,8 @@ export class AttendanceService {
         );
         console.log('Membresías encontradas:', memberships.length);
 
-        activeMembership = memberships.find(
-          (m) => m.status === MembershipStatus.ACTIVE,
-        );
+        activeMembership =
+          memberships.find((m) => m.status === MembershipStatus.ACTIVE) || null; // Añadir '|| null' para manejar el caso undefined
 
         console.log('Membresía activa:', activeMembership ? 'Sí' : 'No');
       } catch (membershipError) {
