@@ -269,7 +269,6 @@ export class AttendanceController {
 
   @Post('qr/verify')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Verificar un código QR y registrar asistencia' })
   @ApiResponse({
@@ -378,6 +377,7 @@ export class AttendanceController {
   }
 
   @Post('register')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Registrar asistencia de un usuario autenticado' })
   @ApiResponse({
     status: 201,
