@@ -14,24 +14,28 @@ export class AttendanceService {
 
   constructor(
     private configService: ConfigService,
-    private membershipsService: MembershipsService
+    private membershipsService: MembershipsService,
   ) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
     const supabaseKey = this.configService.get<string>('SUPABASE_SERVICE_KEY');
-    
+
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Supabase environment variables are not defined');
     }
-    
+
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
   async create(createAttendanceDto: CreateAttendanceDto): Promise<Attendance> {
     try {
       // Verificar si el usuario tiene una membresía activa
-      const memberships = await this.membershipsService.findByUser(createAttendanceDto.user_id);
-      const activeMembership = memberships.find(m => m.status === MembershipStatus.ACTIVE);
-      
+      const memberships = await this.membershipsService.findByUser(
+        createAttendanceDto.user_id,
+      );
+      const activeMembership = memberships.find(
+        (m) => m.status === MembershipStatus.ACTIVE,
+      );
+
       if (!activeMembership) {
         throw new HttpException(
           'El usuario no tiene una membresía activa',
@@ -40,10 +44,12 @@ export class AttendanceService {
       }
 
       // Si no se proporciona un ID de membresía, usar la membresía activa
-      const membershipId = createAttendanceDto.membership_id || activeMembership.id;
-      
+      const membershipId =
+        createAttendanceDto.membership_id || activeMembership.id;
+
       // Si no se proporciona una hora de entrada, usar la hora actual
-      const checkInTime = createAttendanceDto.check_in_time || new Date().toISOString();
+      const checkInTime =
+        createAttendanceDto.check_in_time || new Date().toISOString();
 
       const { data, error } = await this.supabase
         .from('attendances')
@@ -157,7 +163,10 @@ export class AttendanceService {
     }
   }
 
-  async findByDateRange(startDate: string, endDate: string): Promise<Attendance[]> {
+  async findByDateRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<Attendance[]> {
     try {
       const { data, error } = await this.supabase
         .from('attendances')
@@ -182,7 +191,10 @@ export class AttendanceService {
     }
   }
 
-  async update(id: string, updateAttendanceDto: UpdateAttendanceDto): Promise<Attendance> {
+  async update(
+    id: string,
+    updateAttendanceDto: UpdateAttendanceDto,
+  ): Promise<Attendance> {
     try {
       // Verificar si la asistencia existe
       await this.findOne(id);
@@ -244,7 +256,7 @@ export class AttendanceService {
     try {
       // Verificar si la asistencia existe
       const attendance = await this.findOne(id);
-      
+
       // Verificar si ya se registró la salida
       if (attendance.check_out_time) {
         throw new HttpException(
@@ -284,10 +296,10 @@ export class AttendanceService {
     try {
       // Generar un token único para el QR
       const token = `${userId}_${Date.now()}`;
-      
+
       // Generar el código QR
       const qrCode = await QRCode.toDataURL(token);
-      
+
       return qrCode;
     } catch (error) {
       throw new HttpException(
@@ -309,11 +321,13 @@ export class AttendanceService {
       }
 
       const userId = parts[0];
-      
+
       // Verificar si el usuario existe y tiene una membresía activa
       const memberships = await this.membershipsService.findByUser(userId);
-      const activeMembership = memberships.find(m => m.status === MembershipStatus.ACTIVE);
-      
+      const activeMembership = memberships.find(
+        (m) => m.status === MembershipStatus.ACTIVE,
+      );
+
       if (!activeMembership) {
         throw new HttpException(
           'El usuario no tiene una membresía activa',

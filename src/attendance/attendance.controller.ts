@@ -376,6 +376,7 @@ export class AttendanceController {
       );
     }
   }
+
   @Post('register')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
