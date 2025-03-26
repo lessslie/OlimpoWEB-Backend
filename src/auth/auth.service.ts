@@ -16,15 +16,21 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     try {
-      this.logger.log(`Intentando registrar usuario con email: ${registerDto.email}`);
-      
+      this.logger.log(
+        `Intentando registrar usuario con email: ${registerDto.email}`,
+      );
+
       // Verificar si el usuario ya existe
-      const existingUser = await this.usersService.findByEmail(registerDto.email);
+      const existingUser = await this.usersService.findByEmail(
+        registerDto.email,
+      );
       if (existingUser) {
-        this.logger.warn(`Intento de registro con email ya existente: ${registerDto.email}`);
+        this.logger.warn(
+          `Intento de registro con email ya existente: ${registerDto.email}`,
+        );
         throw new HttpException(
           'Este email ya está registrado',
-          HttpStatus.CONFLICT
+          HttpStatus.CONFLICT,
         );
       }
 
@@ -58,7 +64,7 @@ export class AuthService {
           is_admin: user.is_admin,
         },
         token: {
-          access_token: token
+          access_token: token,
         },
       };
     } catch (error) {
@@ -68,7 +74,7 @@ export class AuthService {
       }
       throw new HttpException(
         error.message || 'Error al registrar usuario',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -76,7 +82,7 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     try {
       this.logger.log(`Intento de inicio de sesión para: ${loginDto.email}`);
-      
+
       // Buscar usuario por email
       this.logger.log(`Buscando usuario con email: ${loginDto.email}`);
       const user = await this.usersService.findByEmail(loginDto.email);
@@ -84,23 +90,30 @@ export class AuthService {
         this.logger.warn(`Usuario no encontrado: ${loginDto.email}`);
         throw new HttpException(
           'Credenciales inválidas',
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
       // Verificar contraseña
       this.logger.log('Verificando contraseña');
-      const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+      const isPasswordValid = await bcrypt.compare(
+        loginDto.password,
+        user.password,
+      );
       if (!isPasswordValid) {
-        this.logger.warn(`Contraseña incorrecta para usuario: ${loginDto.email}`);
+        this.logger.warn(
+          `Contraseña incorrecta para usuario: ${loginDto.email}`,
+        );
         throw new HttpException(
           'Credenciales inválidas',
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
       // Generar token JWT
-      this.logger.log(`Inicio de sesión exitoso para usuario: ${loginDto.email}, generando token JWT`);
+      this.logger.log(
+        `Inicio de sesión exitoso para usuario: ${loginDto.email}, generando token JWT`,
+      );
       const token = this.generateToken(user);
 
       return {
@@ -114,17 +127,20 @@ export class AuthService {
           is_admin: user.is_admin,
         },
         token: {
-          access_token: token
+          access_token: token,
         },
       };
     } catch (error) {
-      this.logger.error(`Error en inicio de sesión: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error en inicio de sesión: ${error.message}`,
+        error.stack,
+      );
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
         error.message || 'Error al iniciar sesión',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -135,12 +151,14 @@ export class AuthService {
       const payload = this.jwtService.verify(token);
       this.logger.log(`Token válido para usuario ID: ${payload.sub}`);
       const user = await this.usersService.findOne(payload.sub);
-      
+
       if (!user) {
-        this.logger.warn(`Usuario no encontrado para token con ID: ${payload.sub}`);
+        this.logger.warn(
+          `Usuario no encontrado para token con ID: ${payload.sub}`,
+        );
         throw new HttpException(
           'Token inválido o expirado',
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
 
@@ -158,7 +176,7 @@ export class AuthService {
       this.logger.error(`Error validando token: ${error.message}`, error.stack);
       throw new HttpException(
         'Token inválido o expirado',
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.UNAUTHORIZED,
       );
     }
   }

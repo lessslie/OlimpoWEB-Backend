@@ -13,7 +13,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3003', // Frontend en desarrollo local
-      'https://tu-frontend-desplegado.com', // Frontend desplegado
+      'https://olimpo-web-frontend.vercel.app', // Frontend desplegado
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
@@ -77,7 +77,7 @@ async function bootstrap() {
         if (
           error instanceof Error &&
           'code' in error &&
-          (error as any).code === 'EADDRINUSE'
+          (error as { code?: string }).code === 'EADDRINUSE'
         ) {
           console.log(`Puerto ${port} en uso, intentando con el siguiente...`);
           continue;

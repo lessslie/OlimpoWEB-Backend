@@ -1,5 +1,18 @@
-import { Body, Controller, Post, HttpException, HttpStatus, Get, Headers } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Post,
+  HttpException,
+  HttpStatus,
+  Get,
+  Headers,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -18,7 +31,10 @@ export class AuthController {
     try {
       // Validar que las contraseñas coincidan
       if (registerDto.password !== registerDto.confirmPassword) {
-        throw new HttpException('Las contraseñas no coinciden', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Las contraseñas no coinciden',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       const result = await this.authService.register(registerDto);
@@ -27,44 +43,47 @@ export class AuthController {
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       if (error.message && error.message.includes('User already registered')) {
         throw new HttpException(
           'Este email ya está registrado',
-          HttpStatus.CONFLICT
+          HttpStatus.CONFLICT,
         );
       }
-      
+
       throw new HttpException(
         error.message || 'Error al registrar usuario',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   @Post('login')
-@ApiOperation({ summary: 'Iniciar sesión' })
-@ApiResponse({ status: 200, description: 'Inicio de sesión exitoso' })
-@ApiResponse({ status: 401, description: 'Credenciales inválidas' })
-async login(@Body() loginDto: LoginDto) {
-  try {
-    const result = await this.authService.login(loginDto);
-    return result;
+  @ApiOperation({ summary: 'Iniciar sesión' })
+  @ApiResponse({ status: 200, description: 'Inicio de sesión exitoso' })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  async login(@Body() loginDto: LoginDto) {
+    try {
+      const result = await this.authService.login(loginDto);
+      return result;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      
-      if (error.message && error.message.includes('Invalid login credentials')) {
+
+      if (
+        error.message &&
+        error.message.includes('Invalid login credentials')
+      ) {
         throw new HttpException(
           'Credenciales inválidas',
-          HttpStatus.UNAUTHORIZED
+          HttpStatus.UNAUTHORIZED,
         );
       }
-      
+
       throw new HttpException(
         error.message || 'Error al iniciar sesión',
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -77,7 +96,10 @@ async login(@Body() loginDto: LoginDto) {
   async me(@Headers('authorization') authorization: string) {
     try {
       if (!authorization) {
-        throw new HttpException('Token no proporcionado', HttpStatus.UNAUTHORIZED);
+        throw new HttpException(
+          'Token no proporcionado',
+          HttpStatus.UNAUTHORIZED,
+        );
       }
 
       const token = authorization.replace('Bearer ', '');
@@ -87,10 +109,10 @@ async login(@Body() loginDto: LoginDto) {
       if (error instanceof HttpException) {
         throw error;
       }
-      
+
       throw new HttpException(
         'Token inválido o expirado',
-        HttpStatus.UNAUTHORIZED
+        HttpStatus.UNAUTHORIZED,
       );
     }
   }
