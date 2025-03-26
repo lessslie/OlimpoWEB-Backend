@@ -28,28 +28,79 @@ export class AttendanceService {
 
   async create(createAttendanceDto: CreateAttendanceDto): Promise<Attendance> {
     try {
-      // Verificar si el usuario tiene una membresía activa
-      const memberships = await this.membershipsService.findByUser(
+      console.log(
+        'Creando asistencia para usuario:',
         createAttendanceDto.user_id,
       );
-      const activeMembership = memberships.find(
-        (m) => m.status === MembershipStatus.ACTIVE,
-      );
 
-      if (!activeMembership) {
+      // Verificar si el usuario tiene una membresía activa
+      let activeMembership = null;
+
+      try {
+        const memberships = await this.membershipsService.findByUser(
+          createAttendanceDto.user_id,
+        );
+        console.log('Membresías encontradas:', memberships.length);
+
+        activeMembership = memberships.find(
+          (m) => m.status === MembershipStatus.ACTIVE,
+        );
+
+        console.log('Membresía activa:', activeMembership ? 'Sí' : 'No');
+      } catch (membershipError) {
+        console.error('Error al buscar membresías:', membershipError);
+        throw new HttpException(
+          `Error al verificar membresía: ${membershipError.message}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      // Opción para saltarse la verificación de membresía en desarrollo
+      const skipMembershipCheck =
+        this.configService.get<string>('SKIP_MEMBERSHIP_CHECK') === 'true';
+
+      if (!activeMembership && !skipMembershipCheck) {
         throw new HttpException(
           'El usuario no tiene una membresía activa',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      // Si no se proporciona un ID de membresía, usar la membresía activa
+      // Si no se proporciona un ID de membresía, usar la membresía activa o null si estamos saltando la verificación
       const membershipId =
-        createAttendanceDto.membership_id || activeMembership.id;
+        createAttendanceDto.membership_id ||
+        (activeMembership ? activeMembership.id : null);
 
       // Si no se proporciona una hora de entrada, usar la hora actual
       const checkInTime =
         createAttendanceDto.check_in_time || new Date().toISOString();
+
+      console.log('Insertando en la base de datos:', {
+        user_id: createAttendanceDto.user_id,
+        membership_id: membershipId,
+        check_in_time: checkInTime,
+      });
+
+      // Verificar conexión a Supabase antes de la inserción
+      try {
+        const { data: testData, error: testError } = await this.supabase
+          .from('attendances')
+          .select('count');
+
+        if (testError) {
+          console.error('Error de conexión con Supabase:', testError);
+          throw new HttpException(
+            `Error de conexión con la base de datos: ${testError.message}`,
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
+        }
+      } catch (testError) {
+        console.error('Excepción al verificar conexión:', testError);
+        throw new HttpException(
+          `Error de conexión con la base de datos: ${testError.message}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
 
       const { data, error } = await this.supabase
         .from('attendances')
@@ -64,14 +115,18 @@ export class AttendanceService {
         .single();
 
       if (error) {
+        console.error('Error en la inserción:', error);
         throw new HttpException(
           `Error al registrar la asistencia: ${error.message}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
+      console.log('Asistencia creada exitosamente:', data);
       return data;
     } catch (error) {
+      console.error('Error completo en create:', error);
+
       if (error instanceof HttpException) {
         throw error;
       }

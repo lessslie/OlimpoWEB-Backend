@@ -27,11 +27,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
-
+import { DebugService } from 'src/debug/debug.service';
 @ApiTags('attendance')
 @Controller('attendance')
 export class AttendanceController {
-  constructor(private readonly attendanceService: AttendanceService) {}
+  constructor(
+    private readonly attendanceService: AttendanceService,
+    private readonly debugService: DebugService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -325,33 +328,84 @@ export class AttendanceController {
         );
       }
 
+      // Log raw data
+      console.log('QR Raw data:', encodedData);
+
       // Decodificar los datos del QR
       const decodedData = decodeURIComponent(encodedData);
+      console.log('QR Decoded data:', decodedData);
+
       let qrData;
 
       try {
         qrData = JSON.parse(decodedData);
+        console.log('QR Parsed data:', qrData);
+
+        // Log QR data for debugging
+        await this.debugService.logQRData({
+          raw: encodedData,
+          decoded: decodedData,
+          parsed: qrData,
+        });
       } catch (e) {
-        throw new HttpException(
-          'Formato de datos inválido',
-          HttpStatus.BAD_REQUEST,
-        );
+        console.error('JSON parse error:', e);
+        await this.debugService.logQRData({
+          raw: encodedData,
+          decoded: decodedData,
+          error: e.message,
+        });
+
+        // Intenta un formato alternativo (por ejemplo, formato de URL)
+        const urlParams = new URLSearchParams(decodedData);
+        if (urlParams.has('user_id')) {
+          qrData = {
+            type: 'gym_attendance',
+            user_id: urlParams.get('user_id'),
+            gym_id: urlParams.get('gym_id') || '1',
+          };
+          console.log('Using URL format instead:', qrData);
+        } else {
+          throw new HttpException(
+            'Formato de datos inválido: ' + e.message,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
 
       // Verificar que los datos sean válidos
-      if (!qrData.type || qrData.type !== 'gym_attendance' || !qrData.gym_id) {
+      if (!qrData.type || !qrData.user_id) {
         throw new HttpException(
-          'Código QR inválido para registro de asistencia',
+          'Código QR inválido: faltan campos requeridos',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      // Verificar que el usuario esté autenticado en la aplicación móvil
-      if (!qrData.user_id) {
+      // Verificar conexión con Supabase
+      const dbConnected = await this.debugService.checkSupabaseConnection();
+      if (!dbConnected) {
         throw new HttpException(
-          'Se requiere iniciar sesión para registrar asistencia',
-          HttpStatus.BAD_REQUEST,
+          'Error de conexión con la base de datos',
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
+      }
+
+      // Verificar membresía
+      const membershipCheck = await this.debugService.checkMembership(
+        qrData.user_id,
+      );
+      console.log('Membership check:', membershipCheck);
+
+      if (!membershipCheck.success) {
+        throw new HttpException(
+          `Error al verificar membresía: ${membershipCheck.error}`,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      // Si no hay membresías, verificar si necesitamos crear una
+      if (membershipCheck.data.length === 0) {
+        console.log('No memberships found for user:', qrData.user_id);
+        // Aquí podrías manejar el caso de usuarios sin membresía
       }
 
       // Registrar la asistencia
@@ -366,6 +420,16 @@ export class AttendanceController {
         attendance,
       };
     } catch (error) {
+      console.error('Error completo:', error);
+
+      // Log el error
+      await this.debugService.logQRData({
+        type: 'error',
+        message: error.message,
+        stack: error.stack,
+        data: encodedData,
+      });
+
       if (error instanceof HttpException) {
         throw error;
       }

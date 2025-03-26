@@ -11,6 +11,7 @@ import { BlogModule } from './blog/blog.module';
 import { ProductsModule } from './products/products.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { DebugModule } from 'src/debug/debug.module';
 
 @Module({
   imports: [
@@ -29,10 +30,10 @@ import { UploadsModule } from './uploads/uploads.module';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get('NODE_ENV') !== 'production',
           ssl: {
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
           },
           // Añade un timeout más largo
-          connectTimeoutMS: 10000
+          connectTimeoutMS: 10000,
         };
       },
     }),
@@ -44,6 +45,7 @@ import { UploadsModule } from './uploads/uploads.module';
     ProductsModule,
     NotificationsModule,
     UploadsModule,
+    DebugModule,
   ],
   controllers: [AppController],
   providers: [AppService],
