@@ -378,8 +378,6 @@ export class AttendanceController {
   }
 
   @Post('register')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar asistencia de un usuario autenticado' })
   @ApiResponse({
     status: 201,
