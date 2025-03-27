@@ -32,6 +32,9 @@ export class Product {
   @ApiProperty({ example: true })
   stock: boolean;
 
+  @ApiProperty({ example: false })
+  is_featured: boolean;
+
   @ApiProperty({ example: '2025-03-22T00:00:00.000Z' })
   created_at: Date;
 

@@ -34,7 +34,7 @@ export class BlogController {
   @ApiResponse({ status: 400, description: 'Datos de entrada inválidos' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
-  async create(@Body() createPostDto: CreatePostDto, @Req() req: RequestWithUser) {
+  async create(@Body() createPostDto: CreatePostDto, @Req() req: RequestWithUser): Promise<BlogPost> {
     try {
       return await this.blogService.create(createPostDto, req.user.id);
     } catch (error) {
@@ -51,7 +51,7 @@ export class BlogController {
   @Get()
   @ApiOperation({ summary: 'Obtener todos los posts publicados' })
   @ApiResponse({ status: 200, description: 'Lista de posts publicados', type: [BlogPost] })
-  async findPublished() {
+  async findPublished(): Promise<BlogPost[]> {
     return await this.blogService.findPublished();
   }
 
@@ -64,21 +64,21 @@ export class BlogController {
   @ApiResponse({ status: 200, description: 'Lista de todos los posts', type: [BlogPost] })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
-  async findAll(@Query('status') status?: PostStatus) {
+  async findAll(@Query('status') status?: PostStatus): Promise<BlogPost[]> {
     return await this.blogService.findAll(status);
   }
 
   @Get('tags')
   @ApiOperation({ summary: 'Obtener todas las etiquetas' })
   @ApiResponse({ status: 200, description: 'Lista de etiquetas' })
-  async getAllTags() {
+  async getAllTags(): Promise<string[]> {
     return await this.blogService.getAllTags();
   }
 
   @Get('tag/:tag')
   @ApiOperation({ summary: 'Obtener posts por etiqueta' })
   @ApiResponse({ status: 200, description: 'Lista de posts con la etiqueta especificada', type: [BlogPost] })
-  async findByTag(@Param('tag') tag: string) {
+  async findByTag(@Param('tag') tag: string): Promise<BlogPost[]> {
     return await this.blogService.findByTag(tag);
   }
 
@@ -86,7 +86,7 @@ export class BlogController {
   @ApiOperation({ summary: 'Obtener un post por ID' })
   @ApiResponse({ status: 200, description: 'Post encontrado', type: BlogPost })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string): Promise<BlogPost> {
     return await this.blogService.findOne(id);
   }
 
@@ -94,7 +94,7 @@ export class BlogController {
   @ApiOperation({ summary: 'Obtener un post por slug' })
   @ApiResponse({ status: 200, description: 'Post encontrado', type: BlogPost })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async findBySlug(@Param('slug') slug: string) {
+  async findBySlug(@Param('slug') slug: string): Promise<BlogPost> {
     return await this.blogService.findBySlug(slug);
   }
 
@@ -108,7 +108,7 @@ export class BlogController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
+  async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto): Promise<BlogPost> {
     return await this.blogService.update(id, updatePostDto);
   }
 
@@ -121,7 +121,7 @@ export class BlogController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string): Promise<{ message: string }> {
     await this.blogService.remove(id);
     return { message: 'Post eliminado correctamente' };
   }
@@ -135,7 +135,7 @@ export class BlogController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async publishPost(@Param('id') id: string) {
+  async publishPost(@Param('id') id: string): Promise<BlogPost> {
     return await this.blogService.publishPost(id);
   }
 
@@ -148,7 +148,7 @@ export class BlogController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - No tiene permisos suficientes' })
   @ApiResponse({ status: 404, description: 'Post no encontrado' })
-  async unpublishPost(@Param('id') id: string) {
+  async unpublishPost(@Param('id') id: string): Promise<BlogPost> {
     return await this.blogService.unpublishPost(id);
   }
 }

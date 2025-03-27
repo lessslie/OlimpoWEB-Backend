@@ -40,23 +40,24 @@ export class ProductsService {
       }
 
       // Buscar el ID de la categoría basado en el nombre
-    const { data: categoryData } = await this.supabase
-    .from('product_categories')
-    .select('id')
-    .eq('name', createProductDto.category_id)
-    .single();
+      const { data: categoryData } = await this.supabase
+        .from('product_categories')
+        .select('id')
+        .eq('name', createProductDto.category_id)
+        .single();
 
-  // Preparar datos para insertar con mapeo correcto
-  const productData = {
-    name: createProductDto.name,
-    
-    description: createProductDto.description,
-    price: createProductDto.price,
-    image_url: createProductDto.image, // Mapear image a image_url
-    category_id: categoryData?.id, // Usar category_id en lugar de category_id
-    stock: createProductDto.stock ? 10 : 0, // Convertir stock a stock
-    is_featured: false // Valor predeterminado
-  };  
+      // Preparar datos para insertar con mapeo correcto
+      const productData = {
+        name: createProductDto.name,
+        slug: finalSlug,
+        description: createProductDto.description,
+        price: createProductDto.price,
+        image_url: createProductDto.image, // Mapear image a image_url
+        category_id: categoryData?.id, // Usar category_id en lugar de category
+        stock: createProductDto.stock ? 10 : 0, // Convertir booleano a número
+        is_featured: false // Valor predeterminado
+      };  
+      
       const { data, error } = await this.supabase
         .from('products')
         .insert([productData])
@@ -70,7 +71,13 @@ export class ProductsService {
         );
       }
 
-      return data;
+      // Transformar la respuesta para que coincida con la estructura de Product
+      return {
+        ...data,
+        category_id: createProductDto.category_id, // Usar el enum original
+        stock: data.stock > 0, // Convertir número a booleano
+        image: data.image_url, // Mapear image_url a image
+      } as Product;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -82,7 +89,7 @@ export class ProductsService {
     }
   }
 
-  async findAll(category_id?: ProductCategory, onlyAvailable = false): Promise<Product[]> {
+  async findAll(category?: ProductCategory, onlyAvailable = false): Promise<Product[]> {
     try {
       let query = this.supabase
         .from('products')
@@ -90,12 +97,12 @@ export class ProductsService {
         .order('created_at', { ascending: false });
   
       // Si se especifica una categoría, filtrar por esa categoría
-      if (category_id) {
+      if (category) {
         // Primero buscar el ID de la categoría
         const { data: categoryData } = await this.supabase
           .from('product_categories')
           .select('id')
-          .eq('name', category_id)
+          .eq('name', category)
           .single();
           
         if (categoryData) {
@@ -104,7 +111,6 @@ export class ProductsService {
       }
   
       // Si se solicita solo productos disponibles, filtrar por stock mayor a 0
-      // en lugar de usar el campo "stock" que no existe
       if (onlyAvailable) {
         query = query.gt('stock', 0);
       }
@@ -119,11 +125,17 @@ export class ProductsService {
       }
   
       // Transformar los resultados para que coincidan con la estructura esperada
-      return data.map(product => ({
-        ...product,
-        stock: product.stock > 0,
-        category_id: this.getCategoryNameById(product.category_id) // Necesitarías implementar este método
+      const transformedProducts = await Promise.all(data.map(async (product) => {
+        const categoryName = await this.getCategoryNameById(product.category_id);
+        return {
+          ...product,
+          stock: product.stock > 0, // Convertir número a booleano
+          category_id: categoryName as ProductCategory, // Convertir al enum
+          image: product.image_url, // Mapear image_url a image
+        } as Product;
       }));
+      
+      return transformedProducts;
     } catch (error) {
       throw new HttpException(
         `Error al obtener los productos: ${error.message}`,
@@ -131,25 +143,32 @@ export class ProductsService {
       );
     }
   }
-  // Añade este método a tu ProductsService
-private async getCategoryNameById(categoryId: string): Promise<string> {
-  try {
-    const { data, error } = await this.supabase
-      .from('product_categories')
-      .select('name')
-      .eq('id', categoryId)
-      .single();
-    
-    if (error || !data) {
-      return 'uncategorized'; // Valor predeterminado si no se encuentra la categoría
+
+  // Método para obtener el nombre de la categoría por ID
+  private async getCategoryNameById(categoryId: string): Promise<ProductCategory | string> {
+    try {
+      const { data, error } = await this.supabase
+        .from('product_categories')
+        .select('name')
+        .eq('id', categoryId)
+        .single();
+      
+      if (error || !data) {
+        return ProductCategory.ACCESSORIES; // Valor predeterminado si no se encuentra
+      }
+      
+      // Verificar si el nombre de la categoría es un valor válido del enum
+      if (Object.values(ProductCategory).includes(data.name as ProductCategory)) {
+        return data.name as ProductCategory;
+      }
+      
+      return ProductCategory.ACCESSORIES; // Valor predeterminado si no coincide con el enum
+    } catch (error) {
+      console.error('Error al obtener el nombre de la categoría:', error);
+      return ProductCategory.ACCESSORIES;
     }
-    
-    return data.name;
-  } catch (error) {
-    console.error('Error al obtener el nombre de la categoría:', error);
-    return 'uncategorized';
   }
-}
+  
   async findOne(id: string): Promise<Product> {
     try {
       const { data, error } = await this.supabase
@@ -172,7 +191,14 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
         );
       }
 
-      return data;
+      // Transformar el resultado para que coincida con la estructura de Product
+      const categoryName = await this.getCategoryNameById(data.category_id);
+      return {
+        ...data,
+        stock: data.stock > 0, // Convertir número a booleano
+        category_id: categoryName as ProductCategory, // Convertir al enum
+        image: data.image_url, // Mapear image_url a image
+      } as Product;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -206,7 +232,14 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
         );
       }
 
-      return data;
+      // Transformar el resultado para que coincida con la estructura de Product
+      const categoryName = await this.getCategoryNameById(data.category_id);
+      return {
+        ...data,
+        stock: data.stock > 0, // Convertir número a booleano
+        category_id: categoryName as ProductCategory, // Convertir al enum
+        image: data.image_url, // Mapear image_url a image
+      } as Product;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -271,13 +304,14 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
       }
   
       // Transformar el resultado para coincida con lo que espera el frontend
+      const categoryName = await this.getCategoryNameById(data.category_id);
       return {
         ...data,
         image: data.image_url,
         available: data.stock > 0,
-        category: await this.getCategoryNameById(data.category_id),
+        category: categoryName as ProductCategory,
         slug: slugify(data.name) // Generar el slug para el frontend si lo necesita
-      };
+      } as Product;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -342,7 +376,14 @@ private async getCategoryNameById(categoryId: string): Promise<string> {
         );
       }
 
-      return data;
+      // Transformar el resultado para que coincida con la estructura de Product
+      const categoryName = await this.getCategoryNameById(data.category_id);
+      return {
+        ...data,
+        stock: data.stock > 0, // Convertir número a booleano
+        category_id: categoryName as ProductCategory, // Convertir al enum
+        image: data.image_url, // Mapear image_url a image
+      } as Product;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

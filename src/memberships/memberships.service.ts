@@ -74,7 +74,14 @@ export class MembershipsService {
         );
       }
 
-      return data;
+      // Transformar las fechas de string a Date
+      return {
+        ...data,
+        start_date: new Date(data.start_date),
+        end_date: new Date(data.end_date),
+        created_at: data.created_at ? new Date(data.created_at) : new Date(),
+        updated_at: data.updated_at ? new Date(data.updated_at) : new Date(),
+      } as Membership;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -99,7 +106,14 @@ export class MembershipsService {
         );
       }
 
-      return data;
+      // Transformar las fechas de string a Date para cada membresía
+      return data.map(membership => ({
+        ...membership,
+        start_date: new Date(membership.start_date),
+        end_date: new Date(membership.end_date),
+        created_at: membership.created_at ? new Date(membership.created_at) : new Date(),
+        updated_at: membership.updated_at ? new Date(membership.updated_at) : new Date(),
+      })) as Membership[];
     } catch (error) {
       throw new HttpException(
         `Error al obtener las membresías: ${error.message}`,
@@ -130,7 +144,14 @@ export class MembershipsService {
         );
       }
 
-      return data;
+      // Transformar las fechas de string a Date
+      return {
+        ...data,
+        start_date: new Date(data.start_date),
+        end_date: new Date(data.end_date),
+        created_at: data.created_at ? new Date(data.created_at) : new Date(),
+        updated_at: data.updated_at ? new Date(data.updated_at) : new Date(),
+      } as Membership;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -156,7 +177,14 @@ export class MembershipsService {
         );
       }
 
-      return data;
+      // Transformar las fechas de string a Date para cada membresía
+      return data.map(membership => ({
+        ...membership,
+        start_date: new Date(membership.start_date),
+        end_date: new Date(membership.end_date),
+        created_at: membership.created_at ? new Date(membership.created_at) : new Date(),
+        updated_at: membership.updated_at ? new Date(membership.updated_at) : new Date(),
+      })) as Membership[];
     } catch (error) {
       throw new HttpException(
         `Error al obtener las membresías del usuario: ${error.message}`,
@@ -173,9 +201,30 @@ export class MembershipsService {
       // Verificar si la membresía existe
       await this.findOne(id);
 
+      // Preparar los datos para actualizar
+      const updateData: Record<string, any> = { ...updateMembershipDto };
+      
+      // Si se actualiza la fecha de inicio, recalcular la fecha de fin
+      if (updateMembershipDto.start_date) {
+        const startDate = new Date(updateMembershipDto.start_date);
+        const endDate = new Date(startDate);
+        
+        // Determinar el tipo de membresía (usar el existente o el nuevo)
+        const membership = await this.findOne(id);
+        const membershipType = updateMembershipDto.type || membership.type;
+        
+        if (membershipType === MembershipType.MONTHLY || 
+            membershipType === MembershipType.KICKBOXING_1 || 
+            membershipType === MembershipType.KICKBOXING_2 || 
+            membershipType === MembershipType.KICKBOXING_3) {
+          endDate.setDate(startDate.getDate() + 30);
+          updateData.end_date = endDate.toISOString();
+        }
+      }
+
       const { data, error } = await this.supabase
         .from('memberships')
-        .update(updateMembershipDto)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -187,7 +236,14 @@ export class MembershipsService {
         );
       }
 
-      return data;
+      // Transformar las fechas de string a Date
+      return {
+        ...data,
+        start_date: new Date(data.start_date),
+        end_date: new Date(data.end_date),
+        created_at: data.created_at ? new Date(data.created_at) : new Date(),
+        updated_at: data.updated_at ? new Date(data.updated_at) : new Date(),
+      } as Membership;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
