@@ -134,7 +134,7 @@ export class AttendanceService {
 
       console.log('Asistencia creada exitosamente:', data);
       return data;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error completo en create:', error);
 
       if (error instanceof HttpException) {

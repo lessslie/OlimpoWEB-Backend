@@ -28,6 +28,14 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
 import { DebugService } from 'src/debug/debug.service';
+import { Request as ExpressRequest } from 'express';
+
+interface CustomRequest extends ExpressRequest {
+  user: {
+    id: string;
+    is_admin: boolean;
+  };
+}
 @ApiTags('attendance')
 @Controller('attendance')
 export class AttendanceController {
@@ -432,6 +440,8 @@ export class AttendanceController {
     }
   }
 
+  // Añadir este método al attendance.controller.ts
+
   @Post('register')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Registrar asistencia de un usuario autenticado' })
@@ -442,10 +452,12 @@ export class AttendanceController {
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async registerAttendance(
-    @Body() body: { qrData: any; userId: string },
-    @Request() req,
+    @Body() body: { qrData: { type: string }; userId: string },
+    @Request() req: CustomRequest,
   ) {
     try {
+      console.log('Recibido registro de asistencia:', body);
+
       // Verificar que el QR sea válido
       if (!body.qrData || body.qrData.type !== 'gym_attendance') {
         throw new HttpException(
@@ -467,20 +479,9 @@ export class AttendanceController {
         user_id: body.userId,
         check_in_time: new Date().toISOString(),
       });
-
-      return {
-        success: true,
-        message: 'Asistencia registrada correctamente',
-        attendance,
-      };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      throw new HttpException(
-        `Error al registrar asistencia: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Error al registrar asistencia:', error);
+      throw error;
     }
   }
 }
