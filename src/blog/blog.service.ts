@@ -5,6 +5,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post, PostStatus } from './entities/post.entity';
 import slugify from 'slugify';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class BlogService {
@@ -73,7 +74,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al crear el post: ${error.message}`,
+        `Error al crear el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -104,7 +105,7 @@ export class BlogService {
       return data;
     } catch (error) {
       throw new HttpException(
-        `Error al obtener los posts: ${error.message}`,
+        `Error al obtener los posts: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -128,7 +129,7 @@ export class BlogService {
       return data;
     } catch (error) {
       throw new HttpException(
-        `Error al obtener los posts publicados: ${error.message}`,
+        `Error al obtener los posts publicados: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -162,7 +163,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener el post: ${error.message}`,
+        `Error al obtener el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -196,7 +197,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener el post: ${error.message}`,
+        `Error al obtener el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -261,7 +262,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al actualizar el post: ${error.message}`,
+        `Error al actualizar el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -288,7 +289,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al eliminar el post: ${error.message}`,
+        `Error al eliminar el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -313,7 +314,7 @@ export class BlogService {
       return data;
     } catch (error) {
       throw new HttpException(
-        `Error al obtener los posts por etiqueta: ${error.message}`,
+        `Error al obtener los posts por etiqueta: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -340,7 +341,7 @@ export class BlogService {
       return uniqueTags;
     } catch (error) {
       throw new HttpException(
-        `Error al obtener las etiquetas: ${error.message}`,
+        `Error al obtener las etiquetas: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -373,7 +374,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al publicar el post: ${error.message}`,
+        `Error al publicar el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -406,7 +407,7 @@ export class BlogService {
         throw error;
       }
       throw new HttpException(
-        `Error al despublicar el post: ${error.message}`,
+        `Error al despublicar el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

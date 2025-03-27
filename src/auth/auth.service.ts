@@ -4,6 +4,7 @@ import { UsersService, User } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class AuthService {
@@ -68,7 +69,7 @@ export class AuthService {
         },
       };
     } catch (error) {
-      this.logger.error(`Error en registro: ${error.message}`, error.stack);
+      this.logger.error(`Error en registro: ${getErrorMessage(error)}`, error.stack);
       if (error instanceof HttpException) {
         throw error;
       }
@@ -132,7 +133,7 @@ export class AuthService {
       };
     } catch (error) {
       this.logger.error(
-        `Error en inicio de sesión: ${error.message}`,
+        `Error en inicio de sesión: ${getErrorMessage(error)}`,
         error.stack,
       );
       if (error instanceof HttpException) {
@@ -173,7 +174,7 @@ export class AuthService {
         },
       };
     } catch (error) {
-      this.logger.error(`Error validando token: ${error.message}`, error.stack);
+      this.logger.error(`Error validando token: ${getErrorMessage(error)}`, error.stack);
       throw new HttpException(
         'Token inválido o expirado',
         HttpStatus.UNAUTHORIZED,

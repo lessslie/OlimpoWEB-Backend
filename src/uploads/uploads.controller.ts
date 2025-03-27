@@ -26,6 +26,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @ApiTags('uploads')
 @Controller('uploads')
@@ -72,7 +73,7 @@ export class UploadsController {
       }
     } catch (error) {
       throw new HttpException(
-        `Error al subir el archivo: ${error.message}`,
+        `Error al subir el archivo: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -115,7 +116,7 @@ export class UploadsController {
       }
     } catch (error) {
       throw new HttpException(
-        `Error al eliminar el archivo: ${error.message}`,
+        `Error al eliminar el archivo: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

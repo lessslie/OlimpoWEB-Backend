@@ -29,6 +29,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
 import { DebugService } from 'src/debug/debug.service';
 import { Request as ExpressRequest } from 'express';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 interface CustomRequest extends ExpressRequest {
   user: {
@@ -36,6 +37,7 @@ interface CustomRequest extends ExpressRequest {
     is_admin: boolean;
   };
 }
+
 @ApiTags('attendance')
 @Controller('attendance')
 export class AttendanceController {
@@ -68,7 +70,7 @@ export class AttendanceController {
         throw error;
       }
       throw new HttpException(
-        `Error al registrar la asistencia: ${error.message}`,
+        `Error al registrar la asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -196,7 +198,7 @@ export class AttendanceController {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener el historial de asistencias: ${error.message}`,
+        `Error al obtener el historial de asistencias: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -307,7 +309,7 @@ export class AttendanceController {
         throw error;
       }
       throw new HttpException(
-        `Error al verificar el código QR: ${error.message}`,
+        `Error al verificar el código QR: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -413,7 +415,9 @@ export class AttendanceController {
 
           if (insertError) {
             throw new HttpException(
-              `Error al registrar asistencia directamente: ${insertError.message}`,
+              `Error al registrar asistencia directamente: ${getErrorMessage(
+                insertError,
+              )}`,
               HttpStatus.INTERNAL_SERVER_ERROR,
             );
           }
@@ -434,7 +438,7 @@ export class AttendanceController {
         throw error;
       }
       throw new HttpException(
-        `Error al registrar asistencia: ${error.message}`,
+        `Error al registrar asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

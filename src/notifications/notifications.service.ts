@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as sgMail from '@sendgrid/mail';
 import axios from 'axios';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 import {
   NotificationType,
   NotificationStatus,
@@ -104,7 +105,7 @@ export class NotificationsService {
         await this.updateNotificationStatus(
           error.notificationId,
           NotificationStatus.FAILED,
-          `Error: ${error.message}`,
+          `Error: ${getErrorMessage(error)}`,
         );
       }
 
@@ -330,7 +331,7 @@ export class NotificationsService {
         // Capturar errores específicos de la API de WhatsApp
         const errorMessage = error.response
           ? `Error de WhatsApp API: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`
-          : `Error al enviar WhatsApp: ${error.message}`;
+          : `Error al enviar WhatsApp: ${getErrorMessage(error)}`;
 
         console.error(errorMessage);
         await this.updateNotificationStatus(
@@ -341,7 +342,7 @@ export class NotificationsService {
         return false;
       }
     } catch (error) {
-      console.error(`Error general en sendWhatsApp: ${error.message}`);
+      console.error(`Error general en sendWhatsApp: ${getErrorMessage(error)}`);
       return false;
     }
   }
@@ -418,7 +419,7 @@ export class NotificationsService {
       return emailSent;
     } catch (error) {
       console.error(
-        `Error al enviar notificación de expiración: ${error.message}`,
+        `Error al enviar notificación de expiración: ${getErrorMessage(error)}`,
       );
       return false;
     }
@@ -496,7 +497,7 @@ export class NotificationsService {
       return emailSent;
     } catch (error) {
       console.error(
-        `Error al enviar notificación de renovación: ${error.message}`,
+        `Error al enviar notificación de renovación: ${getErrorMessage(error)}`,
       );
       return false;
     }
@@ -648,7 +649,7 @@ export class NotificationsService {
 
       return results;
     } catch (error) {
-      console.error(`Error al enviar correos masivos: ${error.message}`);
+      console.error(`Error al enviar correos masivos: ${getErrorMessage(error)}`);
       return {
         success: false,
         sent: results.sent,

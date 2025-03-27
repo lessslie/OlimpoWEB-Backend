@@ -4,6 +4,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
 import * as bcrypt from 'bcrypt';
+import { getErrorMessage } from './common/utils/error-handler.util';
 
 @ApiTags('App')
 @Controller()
@@ -73,7 +74,7 @@ export class AppController {
     } catch (error) {
       return {
         status: 'error',
-        message: error.message,
+        message: getErrorMessage(error),
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       };
     }
@@ -198,7 +199,7 @@ export class AppController {
     } catch (error) {
       return {
         status: 'error',
-        message: `Error inesperado: ${error.message}`,
+        message: `Error inesperado: ${getErrorMessage(error)}`,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       };
     }
@@ -326,7 +327,7 @@ export class AppController {
     } catch (error) {
       return {
         status: 'error',
-        message: `Error inesperado: ${error.message}`,
+        message: `Error inesperado: ${getErrorMessage(error)}`,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       };
     }

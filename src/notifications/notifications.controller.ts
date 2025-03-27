@@ -14,6 +14,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
 import { NotificationsService } from './notifications.service';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 import {
   NotificationType,
   NotificationStatus,
@@ -282,7 +283,7 @@ export class NotificationsController {
 
       return { success: true, log: data };
     } catch (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: getErrorMessage(error) };
     }
   }
 }

@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @ApiTags('memberships')
 @Controller('memberships')
@@ -31,7 +32,7 @@ export class MembershipsController {
         throw error;
       }
       throw new HttpException(
-        `Error al crear la membresía: ${error.message}`,
+        `Error al crear la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -8,6 +8,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @ApiTags('products')
 @Controller('products')
@@ -31,7 +32,7 @@ export class ProductsController {
         throw error;
       }
       throw new HttpException(
-        `Error al crear el producto: ${error.message}`,
+        `Error al crear el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

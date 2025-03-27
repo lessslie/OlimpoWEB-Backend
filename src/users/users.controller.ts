@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpS
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService, User } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @ApiTags('users')
 @Controller('users')
@@ -23,7 +24,7 @@ export class UsersController {
         throw error;
       }
       
-      if (error.message && error.message.includes('already exists')) {
+      if (getErrorMessage(error) && error.message.includes('already exists')) {
         throw new HttpException(
           'El usuario ya existe',
           HttpStatus.CONFLICT

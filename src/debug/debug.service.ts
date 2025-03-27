@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class DebugService {
@@ -23,7 +24,7 @@ export class DebugService {
       const { error } = await this.supabase.from('attendances').select('count');
       return !error;
     } catch (error) {
-      this.logger.error(`Error connecting to Supabase: ${error.message}`);
+      this.logger.error(`Error connecting to Supabase: ${getErrorMessage(error)}`);
       return false;
     }
   }
@@ -42,7 +43,7 @@ export class DebugService {
 
       return { success: true, data };
     } catch (error) {
-      this.logger.error(`Exception checking membership: ${error.message}`);
+      this.logger.error(`Exception checking membership: ${getErrorMessage(error)}`);
       return { success: false, error: error.message };
     }
   }
@@ -59,7 +60,7 @@ export class DebugService {
       ]);
       this.logger.log('QR data logged successfully');
     } catch (error) {
-      this.logger.error(`Error logging QR data: ${error.message}`);
+      this.logger.error(`Error logging QR data: ${getErrorMessage(error)}`);
     }
   }
 }

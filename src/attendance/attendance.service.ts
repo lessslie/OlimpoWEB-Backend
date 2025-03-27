@@ -7,6 +7,7 @@ import { Attendance } from './entities/attendance.entity';
 import * as QRCode from 'qrcode';
 import { MembershipsService } from '../memberships/memberships.service';
 import { MembershipStatus } from '../memberships/entities/membership.entity';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class AttendanceService {
@@ -125,9 +126,7 @@ export class AttendanceService {
         }
 
         throw new HttpException(
-          `Error al registrar la asistencia: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
+          `Error al registrar la asistencia: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -140,8 +139,9 @@ export class AttendanceService {
       if (error instanceof HttpException) {
         throw error;
       }
+      
       throw new HttpException(
-        `Error al registrar la asistencia: ${error.message}`,
+        `Error al registrar la asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -156,15 +156,17 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al obtener las asistencias: ${error.message}`,
+          `Error al obtener las asistencias: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
       return data;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error en findAll:', error);
+      
       throw new HttpException(
-        `Error al obtener las asistencias: ${error.message}`,
+        `Error al obtener las asistencias: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -180,7 +182,7 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al obtener la asistencia: ${error.message}`,
+          `Error al obtener la asistencia: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -193,12 +195,11 @@ export class AttendanceService {
       }
 
       return data;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    } catch (error: unknown) {
+      console.error('Error en findOne:', error);
+      
       throw new HttpException(
-        `Error al obtener la asistencia: ${error.message}`,
+        `Error al obtener la asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -214,15 +215,17 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al obtener las asistencias del usuario: ${error.message}`,
+          `Error al obtener las asistencias del usuario: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
       return data;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error en findByUser:', error);
+      
       throw new HttpException(
-        `Error al obtener las asistencias del usuario: ${error.message}`,
+        `Error al obtener las asistencias del usuario: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -242,15 +245,17 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al obtener las asistencias por rango de fechas: ${error.message}`,
+          `Error al obtener las asistencias por rango de fechas: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
       return data;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error en findByDateRange:', error);
+      
       throw new HttpException(
-        `Error al obtener las asistencias por rango de fechas: ${error.message}`,
+        `Error al obtener las asistencias por rango de fechas: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -273,18 +278,17 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al actualizar la asistencia: ${error.message}`,
+          `Error al actualizar la asistencia: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
       return data;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    } catch (error: unknown) {
+      console.error('Error en update:', error);
+      
       throw new HttpException(
-        `Error al actualizar la asistencia: ${error.message}`,
+        `Error al actualizar la asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -302,16 +306,15 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al eliminar la asistencia: ${error.message}`,
+          `Error al eliminar la asistencia: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    } catch (error: unknown) {
+      console.error('Error en remove:', error);
+      
       throw new HttpException(
-        `Error al eliminar la asistencia: ${error.message}`,
+        `Error al eliminar la asistencia: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -340,18 +343,17 @@ export class AttendanceService {
 
       if (error) {
         throw new HttpException(
-          `Error al registrar la salida: ${error.message}`,
+          `Error al registrar la salida: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
       return data;
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
+    } catch (error: unknown) {
+      console.error('Error en checkOut:', error);
+      
       throw new HttpException(
-        `Error al registrar la salida: ${error.message}`,
+        `Error al registrar la salida: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -366,9 +368,11 @@ export class AttendanceService {
       const qrCode = await QRCode.toDataURL(token);
 
       return qrCode;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error en generateQRCode:', error);
+      
       throw new HttpException(
-        `Error al generar el código QR: ${error.message}`,
+        `Error al generar el código QR: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -402,13 +406,14 @@ export class AttendanceService {
 
       return { userId };
     } catch (error: unknown) {
+      console.error('Error en verifyQRCode:', error);
+      
       if (error instanceof HttpException) {
         throw error;
       }
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      
       throw new HttpException(
-        `Error al verificar el código QR: ${errorMessage}`,
+        `Error al verificar el código QR: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

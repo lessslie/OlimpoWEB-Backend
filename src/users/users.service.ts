@@ -2,6 +2,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from '@supabase/supabase-js';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 export interface User {
   id: string;
@@ -56,7 +57,7 @@ export class UsersService {
       this.logger.log(`Usuario creado con ID: ${data[0].id}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al crear usuario: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al crear usuario: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }
@@ -77,7 +78,7 @@ export class UsersService {
       this.logger.log(`Se encontraron ${data.length} usuarios`);
       return data;
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuarios: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al buscar usuarios: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }
@@ -107,7 +108,7 @@ export class UsersService {
       this.logger.log(`Usuario encontrado: ${data.email}`);
       return data;
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuario: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al buscar usuario: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }
@@ -135,7 +136,7 @@ export class UsersService {
       this.logger.log(`Usuario encontrado: ${data[0].email}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuario por email: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al buscar usuario por email: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }
@@ -166,7 +167,7 @@ export class UsersService {
       this.logger.log(`Usuario actualizado: ${data[0].email}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al actualizar usuario: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al actualizar usuario: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }
@@ -188,7 +189,7 @@ export class UsersService {
       this.logger.log(`Usuario eliminado con ID: ${id}`);
       return true;
     } catch (error) {
-      this.logger.error(`Error inesperado al eliminar usuario: ${error.message}`, error.stack);
+      this.logger.error(`Error inesperado al eliminar usuario: ${getErrorMessage(error)}`, error.stack);
       throw error;
     }
   }

@@ -16,6 +16,7 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -44,7 +45,7 @@ export class AuthController {
         throw error;
       }
 
-      if (error.message && error.message.includes('User already registered')) {
+      if (getErrorMessage(error) && error.message.includes('User already registered')) {
         throw new HttpException(
           'Este email ya está registrado',
           HttpStatus.CONFLICT,
@@ -72,7 +73,7 @@ export class AuthController {
       }
 
       if (
-        error.message &&
+        getErrorMessage(error) &&
         error.message.includes('Invalid login credentials')
       ) {
         throw new HttpException(

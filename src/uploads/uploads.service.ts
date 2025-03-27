@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 // Definir la interfaz para la respuesta de Cloudinary
 interface CloudinaryResponse {
@@ -96,7 +97,7 @@ export class UploadsService {
         mimetype: file.mimetype,
       };
     } catch (error) {
-      throw new Error(`Error al subir archivo a Cloudinary: ${error.message}`);
+      throw new Error(`Error al subir archivo a Cloudinary: ${getErrorMessage(error)}`);
     }
   }
 
@@ -129,7 +130,7 @@ export class UploadsService {
         throw new Error(`No se pudo eliminar el archivo con ID ${publicId}`);
       }
     } catch (error) {
-      throw new Error(`Error al eliminar archivo de Cloudinary: ${error.message}`);
+      throw new Error(`Error al eliminar archivo de Cloudinary: ${getErrorMessage(error)}`);
     }
   }
 
@@ -158,7 +159,7 @@ export class UploadsService {
       unlinkSync(filePath);
       return { message: `Archivo ${filename} eliminado correctamente` };
     } catch (error) {
-      throw new Error(`Error al eliminar el archivo: ${error.message}`);
+      throw new Error(`Error al eliminar el archivo: ${getErrorMessage(error)}`);
     }
   }
 
@@ -217,7 +218,7 @@ export class UploadsService {
         mimetype: file.mimetype,
       };
     } catch (error) {
-      throw new Error(`Error al guardar archivo localmente: ${error.message}`);
+      throw new Error(`Error al guardar archivo localmente: ${getErrorMessage(error)}`);
     }
   }
 }

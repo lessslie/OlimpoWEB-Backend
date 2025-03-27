@@ -5,6 +5,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product, ProductCategory } from './entities/product.entity';
 import slugify from 'slugify';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class ProductsService {
@@ -83,7 +84,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al crear el producto: ${error.message}`,
+        `Error al crear el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -138,7 +139,7 @@ export class ProductsService {
       return transformedProducts;
     } catch (error) {
       throw new HttpException(
-        `Error al obtener los productos: ${error.message}`,
+        `Error al obtener los productos: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -179,7 +180,7 @@ export class ProductsService {
 
       if (error) {
         throw new HttpException(
-          `Error al obtener el producto: ${error.message}`,
+          `Error al obtener el producto: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -204,7 +205,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener el producto: ${error.message}`,
+        `Error al obtener el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -245,7 +246,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener el producto: ${error.message}`,
+        `Error al obtener el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -317,7 +318,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al actualizar el producto: ${error.message}`,
+        `Error al actualizar el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -344,7 +345,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al eliminar el producto: ${error.message}`,
+        `Error al eliminar el producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -389,7 +390,7 @@ export class ProductsService {
         throw error;
       }
       throw new HttpException(
-        `Error al cambiar la disponibilidad del producto: ${error.message}`,
+        `Error al cambiar la disponibilidad del producto: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

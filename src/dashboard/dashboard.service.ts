@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 import {
   MembershipStatus,
   MembershipType,
@@ -73,7 +74,7 @@ export class DashboardService {
       };
     } catch (error) {
       throw new HttpException(
-        `Error al obtener estadísticas del dashboard: ${error.message}`,
+        `Error al obtener estadísticas del dashboard: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -133,7 +134,7 @@ export class DashboardService {
       };
     } catch (error) {
       throw new Error(
-        `Error al obtener estadísticas de membresías: ${error.message}`,
+        `Error al obtener estadísticas de membresías: ${getErrorMessage(error)}`,
       );
     }
   }
@@ -200,7 +201,7 @@ export class DashboardService {
       };
     } catch (error) {
       throw new Error(
-        `Error al obtener estadísticas de asistencia: ${error.message}`,
+        `Error al obtener estadísticas de asistencia: ${getErrorMessage(error)}`,
       );
     }
   }
@@ -242,7 +243,7 @@ export class DashboardService {
       };
     } catch (error) {
       throw new Error(
-        `Error al obtener estadísticas del blog: ${error.message}`,
+        `Error al obtener estadísticas del blog: ${getErrorMessage(error)}`,
       );
     }
   }
@@ -312,7 +313,7 @@ export class DashboardService {
       };
     } catch (error) {
       throw new Error(
-        `Error al obtener estadísticas de nuevos usuarios: ${error.message}`,
+        `Error al obtener estadísticas de nuevos usuarios: ${getErrorMessage(error)}`,
       );
     }
   }
@@ -358,7 +359,7 @@ export class DashboardService {
       return result;
     } catch (error) {
       throw new Error(
-        `Error al obtener datos de ingresos mensuales: ${error.message}`,
+        `Error al obtener datos de ingresos mensuales: ${getErrorMessage(error)}`,
       );
     }
   }
@@ -410,7 +411,7 @@ export class DashboardService {
       return result;
     } catch (error) {
       throw new Error(
-        `Error al obtener datos de asistencia diaria: ${error.message}`,
+        `Error al obtener datos de asistencia diaria: ${getErrorMessage(error)}`,
       );
     }
   }

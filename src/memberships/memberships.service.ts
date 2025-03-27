@@ -9,6 +9,7 @@ import {
   MembershipType,
 } from './entities/membership.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 @Injectable()
 export class MembershipsService {
@@ -87,7 +88,7 @@ export class MembershipsService {
         throw error;
       }
       throw new HttpException(
-        `Error al crear la membresía: ${error.message}`,
+        `Error al crear la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -116,7 +117,7 @@ export class MembershipsService {
       })) as Membership[];
     } catch (error) {
       throw new HttpException(
-        `Error al obtener las membresías: ${error.message}`,
+        `Error al obtener las membresías: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -157,7 +158,7 @@ export class MembershipsService {
         throw error;
       }
       throw new HttpException(
-        `Error al obtener la membresía: ${error.message}`,
+        `Error al obtener la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -187,7 +188,7 @@ export class MembershipsService {
       })) as Membership[];
     } catch (error) {
       throw new HttpException(
-        `Error al obtener las membresías del usuario: ${error.message}`,
+        `Error al obtener las membresías del usuario: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -249,7 +250,7 @@ export class MembershipsService {
         throw error;
       }
       throw new HttpException(
-        `Error al actualizar la membresía: ${error.message}`,
+        `Error al actualizar la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -276,7 +277,7 @@ export class MembershipsService {
         throw error;
       }
       throw new HttpException(
-        `Error al eliminar la membresía: ${error.message}`,
+        `Error al eliminar la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -437,7 +438,7 @@ El equipo de Olimpo Gym`,
         throw error;
       }
       throw new HttpException(
-        `Error al buscar membresías por expirar: ${error.message}`,
+        `Error al buscar membresías por expirar: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -472,7 +473,7 @@ El equipo de Olimpo Gym`,
       }));
     } catch (error) {
       throw new HttpException(
-        `Error al buscar membresías para renovación automática: ${error.message}`,
+        `Error al buscar membresías para renovación automática: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -550,7 +551,7 @@ El equipo de Olimpo Gym`,
         throw error;
       }
       throw new HttpException(
-        `Error al renovar la membresía: ${error.message}`,
+        `Error al renovar la membresía: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -702,7 +703,7 @@ El equipo de Olimpo Gym`,
 
       if (error) {
         throw new HttpException(
-          `Error al obtener membresías para renovación automática: ${error.message}`,
+          `Error al obtener membresías para renovación automática: ${getErrorMessage(error)}`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -809,7 +810,7 @@ El equipo de Olimpo Gym`,
       console.log(`Proceso de renovación automática completado`);
     } catch (error) {
       console.error(
-        `Error en la renovación automática de membresías: ${error.message}`,
+        `Error en la renovación automática de membresías: ${getErrorMessage(error)}`,
       );
       throw new HttpException(
         `Error en la renovación automática de membresías: ${error.message}`,

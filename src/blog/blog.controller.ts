@@ -9,6 +9,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
 import { Request } from 'express';
+import { getErrorMessage } from '../common/utils/error-handler.util';
 
 // Extender la interfaz Request para incluir la propiedad user
 interface RequestWithUser extends Request {
@@ -42,7 +43,7 @@ export class BlogController {
         throw error;
       }
       throw new HttpException(
-        `Error al crear el post: ${error.message}`,
+        `Error al crear el post: ${getErrorMessage(error)}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
