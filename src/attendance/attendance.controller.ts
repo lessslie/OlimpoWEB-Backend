@@ -361,23 +361,52 @@ export class AttendanceController {
       let qrData;
 
       try {
+        // Intentar parsear como JSON directamente
         qrData = JSON.parse(decodedData);
         console.log('QR Parsed data:', qrData);
       } catch (e) {
         console.error('JSON parse error:', e.message);
-        throw new HttpException(
-          'Formato de datos inválido: ' + e.message,
-          HttpStatus.BAD_REQUEST,
-        );
+        
+        // Si falla, puede ser que el formato sea diferente
+        // Intentar extraer el JSON de la URL si es necesario
+        try {
+          // Buscar si hay un patrón como data={"key":"value"}
+          const match = decodedData.match(/data=(.+)$/);
+          if (match && match[1]) {
+            const jsonStr = decodeURIComponent(match[1]);
+            console.log('Extracted JSON string:', jsonStr);
+            qrData = JSON.parse(jsonStr);
+            console.log('QR Parsed data from URL:', qrData);
+          } else {
+            throw new Error('No se pudo extraer datos JSON de la URL');
+          }
+        } catch (extractError) {
+          console.error('Error extracting JSON from URL:', extractError);
+          throw new HttpException(
+            'Formato de datos inválido en el QR: ' + e.message,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
 
       // Verificar que exista el user_id
       if (!qrData.user_id) {
-        throw new HttpException(
-          'Error: No se proporcionó el ID de usuario en el código QR',
-          HttpStatus.BAD_REQUEST,
-        );
+        // Si no existe user_id, intentar buscar en otras propiedades
+        if (qrData.userId) {
+          qrData.user_id = qrData.userId;
+        } else {
+          console.error('No se encontró user_id en los datos:', qrData);
+          throw new HttpException(
+            'Error: No se proporcionó el ID de usuario en el código QR',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
       }
+
+      console.log('Datos procesados para registro de asistencia:', {
+        user_id: qrData.user_id,
+        check_in_time: new Date().toISOString(),
+      });
 
       // Registrar la asistencia con una verificación mínima
       try {
@@ -395,7 +424,11 @@ export class AttendanceController {
         console.error('Error al crear asistencia:', error);
 
         // Si es un error de membresía, intentar una solución alternativa
-        if (error.message && error.message.includes('membresía activa')) {
+        if (
+          error instanceof Error && 
+          error.message && 
+          error.message.includes('membresía activa')
+        ) {
           console.log(
             'Intentando registrar asistencia sin verificación de membresía',
           );
@@ -414,6 +447,7 @@ export class AttendanceController {
               .single();
 
           if (insertError) {
+            console.error('Error en inserción directa:', insertError);
             throw new HttpException(
               `Error al registrar asistencia directamente: ${getErrorMessage(
                 insertError,
@@ -432,7 +466,7 @@ export class AttendanceController {
         throw error;
       }
     } catch (error) {
-      console.error('Error completo:', error);
+      console.error('Error completo en checkInWithQR:', error);
 
       if (error instanceof HttpException) {
         throw error;

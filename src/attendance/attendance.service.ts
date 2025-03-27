@@ -27,25 +27,77 @@ export class AttendanceService {
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
-  // Método create simplificado para attendance.service.ts
-  async create(createAttendanceDto: CreateAttendanceDto): Promise<Attendance> {
+  async create(
+    createAttendanceDto: CreateAttendanceDto,
+    adminId?: string,
+  ): Promise<Attendance> {
     try {
-      console.log(
-        'Creando asistencia para usuario:',
-        createAttendanceDto.user_id,
-      );
+      console.log('Iniciando creación de asistencia:', {
+        dto: createAttendanceDto,
+        adminId: adminId || 'No proporcionado',
+      });
 
-      // Saltarse verificación de membresía en desarrollo o entorno de prueba
-      const skipMembershipCheck =
-        this.configService.get<string>('SKIP_MEMBERSHIP_CHECK') === 'true' ||
-        this.configService.get<string>('NODE_ENV') === 'development';
+      // Verificar que el usuario existe antes de crear la asistencia
+      const { data: userData, error: userError } = await this.supabase
+        .from('users')
+        .select('id, first_name, last_name')
+        .eq('id', createAttendanceDto.user_id)
+        .single();
 
-      // Declarar membershipId como string | null, no solo null
-      let membershipId: string | null = null;
+      if (userError) {
+        console.error('Error al verificar usuario:', userError);
+        throw new HttpException(
+          `Usuario no encontrado: ${getErrorMessage(userError)}`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
-      if (!skipMembershipCheck) {
+      console.log('Usuario encontrado:', userData);
+
+      // Verificar si ya existe una asistencia para el usuario en el día actual
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      console.log('Verificando asistencias existentes entre:', {
+        today: today.toISOString(),
+        tomorrow: tomorrow.toISOString(),
+      });
+
+      const { data: existingAttendance, error: existingError } =
+        await this.supabase
+          .from('attendances')
+          .select('*')
+          .eq('user_id', createAttendanceDto.user_id)
+          .gte('check_in_time', today.toISOString())
+          .lt('check_in_time', tomorrow.toISOString())
+          .order('check_in_time', { ascending: false })
+          .maybeSingle();
+
+      if (existingError) {
+        console.error('Error al verificar asistencias existentes:', existingError);
+        // No lanzamos excepción, continuamos con el proceso
+      }
+
+      if (existingAttendance) {
+        console.log('Ya existe una asistencia para hoy:', existingAttendance);
+        
+        // Si ya existe una asistencia sin check_out_time, devolvemos esa
+        if (!existingAttendance.check_out_time) {
+          return existingAttendance;
+        }
+        
+        // Si ya tiene check_out_time, creamos una nueva entrada
+        console.log('La asistencia existente ya tiene check_out_time, creando nueva entrada');
+      }
+
+      // Buscar membresía activa para el usuario
+      let membershipId = createAttendanceDto.membership_id;
+
+      if (!membershipId) {
+        console.log('No se proporcionó membership_id, buscando membresía activa');
         try {
-          // Intentar obtener membresía activa
           const memberships = await this.membershipsService.findByUser(
             createAttendanceDto.user_id,
           );
@@ -56,12 +108,13 @@ export class AttendanceService {
           );
 
           if (activeMembership) {
-            console.log('Membresía activa encontrada');
+            console.log('Membresía activa encontrada:', activeMembership.id);
             membershipId = activeMembership.id;
           } else if (memberships.length > 0) {
             // Si no hay membresía activa pero hay otras, usar la primera
             console.log(
-              'No hay membresía activa, usando la primera disponible',
+              'No hay membresía activa, usando la primera disponible:',
+              memberships[0].id,
             );
             membershipId = memberships[0].id;
           } else {
@@ -70,7 +123,7 @@ export class AttendanceService {
         } catch (membershipError) {
           console.error(
             'Error no crítico al buscar membresías:',
-            membershipError,
+            getErrorMessage(membershipError),
           );
           // Continuamos sin membresía
         }
@@ -100,7 +153,8 @@ export class AttendanceService {
         // Intentar inserción sin membership_id si ese fue el problema
         if (
           error.message.includes('membership_id') ||
-          error.message.includes('foreign key')
+          error.message.includes('foreign key') ||
+          error.message.includes('violates not-null constraint')
         ) {
           console.log('Reintentando sin membership_id');
           const { data: retryData, error: retryError } = await this.supabase
@@ -116,12 +170,14 @@ export class AttendanceService {
             .single();
 
           if (retryError) {
+            console.error('Error al reintentar inserción:', retryError);
             throw new HttpException(
-              `Error al reintentar inserción: ${retryError.message}`,
+              `Error al reintentar inserción: ${getErrorMessage(retryError)}`,
               HttpStatus.INTERNAL_SERVER_ERROR,
             );
           }
 
+          console.log('Asistencia creada exitosamente (reintento):', retryData);
           return retryData;
         }
 
