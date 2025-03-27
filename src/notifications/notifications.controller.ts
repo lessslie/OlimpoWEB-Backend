@@ -14,7 +14,10 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/entities/user.entity';
 import { NotificationsService } from './notifications.service';
-import { NotificationType, NotificationStatus } from './entities/notification.entity';
+import {
+  NotificationType,
+  NotificationStatus,
+} from './entities/notification.entity';
 
 class SendEmailDto {
   email: string;
@@ -118,15 +121,16 @@ export class NotificationsController {
   async sendMembershipExpirationNotification(
     @Body() dto: SendMembershipExpirationDto,
   ) {
-    const success = await this.notificationsService.sendMembershipExpirationNotification({
-      email: dto.email,
-      name: dto.name,
-      expirationDate: dto.expirationDate,
-      membershipType: dto.membershipType,
-      userId: dto.userId,
-      membershipId: dto.membershipId,
-      templateId: dto.templateId,
-    });
+    const success =
+      await this.notificationsService.sendMembershipExpirationNotification({
+        email: dto.email,
+        name: dto.name,
+        expirationDate: dto.expirationDate,
+        membershipType: dto.membershipType,
+        userId: dto.userId,
+        membershipId: dto.membershipId,
+        templateId: dto.templateId,
+      });
     return { success };
   }
 
@@ -136,15 +140,16 @@ export class NotificationsController {
   async sendMembershipRenewalNotification(
     @Body() dto: SendMembershipRenewalDto,
   ) {
-    const success = await this.notificationsService.sendMembershipRenewalNotification({
-      email: dto.email,
-      name: dto.name,
-      newExpirationDate: dto.newExpirationDate,
-      membershipType: dto.membershipType,
-      userId: dto.userId,
-      membershipId: dto.membershipId,
-      templateId: dto.templateId,
-    });
+    const success =
+      await this.notificationsService.sendMembershipRenewalNotification({
+        email: dto.email,
+        name: dto.name,
+        newExpirationDate: dto.newExpirationDate,
+        membershipType: dto.membershipType,
+        userId: dto.userId,
+        membershipId: dto.membershipId,
+        templateId: dto.templateId,
+      });
     return { success };
   }
 
@@ -171,7 +176,8 @@ export class NotificationsController {
   @Get('user/:userId')
   @Roles(Role.ADMIN)
   async getUserNotifications(@Param('userId') userId: string) {
-    const notifications = await this.notificationsService.getUserNotifications(userId);
+    const notifications =
+      await this.notificationsService.getUserNotifications(userId);
     return { notifications };
   }
 
@@ -214,7 +220,10 @@ export class NotificationsController {
     @Param('id') id: string,
     @Body() updateTemplateDto: UpdateTemplateDto,
   ) {
-    const template = await this.notificationsService.updateTemplate(id, updateTemplateDto);
+    const template = await this.notificationsService.updateTemplate(
+      id,
+      updateTemplateDto,
+    );
     return { success: !!template, template };
   }
 
@@ -247,8 +256,12 @@ export class NotificationsController {
       userId,
       membershipId,
     };
-    
-    return this.notificationsService.getNotificationLogs(+page, +limit, filters);
+
+    return this.notificationsService.getNotificationLogs(
+      +page,
+      +limit,
+      filters,
+    );
   }
 
   @Get('logs/:id')
@@ -262,11 +275,11 @@ export class NotificationsController {
         .select('*, users!notifications_user_id_fkey(full_name, email)')
         .eq('id', id)
         .single();
-      
+
       if (error) {
         return { success: false, error: error.message };
       }
-      
+
       return { success: true, log: data };
     } catch (error) {
       return { success: false, error: error.message };
