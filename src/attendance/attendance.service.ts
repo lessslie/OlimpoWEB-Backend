@@ -39,7 +39,8 @@ export class AttendanceService {
         this.configService.get<string>('SKIP_MEMBERSHIP_CHECK') === 'true' ||
         this.configService.get<string>('NODE_ENV') === 'development';
 
-      let membershipId = null;
+      // Declarar membershipId como string | null, no solo null
+      let membershipId: string | null = null;
 
       if (!skipMembershipCheck) {
         try {
@@ -124,7 +125,9 @@ export class AttendanceService {
         }
 
         throw new HttpException(
-          `Error al registrar la asistencia: ${error.message}`,
+          `Error al registrar la asistencia: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
@@ -398,12 +401,14 @@ export class AttendanceService {
       }
 
       return { userId };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof HttpException) {
         throw error;
       }
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
       throw new HttpException(
-        `Error al verificar el código QR: ${error.message}`,
+        `Error al verificar el código QR: ${errorMessage}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
