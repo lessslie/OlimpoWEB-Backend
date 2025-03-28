@@ -12,7 +12,8 @@ async function bootstrap() {
   // Configuración de CORS
   app.enableCors({
     origin: [
-      'http://localhost:3003', // Frontend en desarrollo local
+      'http://localhost:3000', // Frontend en desarrollo local
+      'http://localhost:3003', // Frontend en desarrollo local (puerto alternativo)
       'https://olimpo-web-frontend.vercel.app', // Frontend desplegado
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],

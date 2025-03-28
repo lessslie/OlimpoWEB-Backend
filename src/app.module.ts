@@ -12,6 +12,7 @@ import { ProductsModule } from './products/products.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { DebugModule } from 'src/debug/debug.module';
+import { RoutinesModule } from './routines/routines.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { DebugModule } from 'src/debug/debug.module';
     NotificationsModule,
     UploadsModule,
     DebugModule,
+    RoutinesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

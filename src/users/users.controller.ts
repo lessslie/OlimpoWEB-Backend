@@ -1,5 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService, User } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { getErrorMessage } from '../common/utils/error-handler.util';
@@ -16,25 +32,25 @@ export class UsersController {
   @ApiResponse({ status: 409, description: 'El usuario ya existe' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  async create(@Body() createUserDto: any) {
+  async create(@Body() createUserDto: User) {
     try {
       return await this.usersService.create(createUserDto);
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
       }
-      
-      if (getErrorMessage(error) && error.message.includes('already exists')) {
-        throw new HttpException(
-          'El usuario ya existe',
-          HttpStatus.CONFLICT
-        );
+
+      const errorMessage = getErrorMessage(error) as string | undefined;
+      if (errorMessage && errorMessage.includes('already exists')) {
+        throw new HttpException('El usuario ya existe', HttpStatus.CONFLICT);
       }
-      
-      throw new HttpException(
-        error.message || 'Error al crear usuario',
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
+
+      const errorMsg =
+        typeof error === 'object' && error !== null && 'message' in error
+          ? (error as { message: string }).message
+          : 'Error al crear usuario';
+
+      throw new HttpException(errorMsg, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -63,7 +79,10 @@ export class UsersController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un usuario' })
-  @ApiResponse({ status: 200, description: 'Usuario actualizado correctamente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario actualizado correctamente',
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -88,4 +107,31 @@ export class UsersController {
     }
     return { message: 'Usuario eliminado correctamente' };
   }
+
+  // @Get(':id/routine')
+  // @ApiOperation({ summary: 'Obtener la rutina de un usuario' })
+  // @ApiResponse({ status: 200, description: 'Rutina obtenida correctamente' })
+  // @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  // async getUserRoutine(@Param('id') id: string) {
+  //   return this.usersService.getUserRoutine(id);
+  // }
+
+  // @Post(':id/routine')
+  // @ApiOperation({ summary: 'Crear o actualizar la rutina de un usuario' })
+  // @ApiResponse({ status: 200, description: 'Rutina actualizada correctamente' })
+  // @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  // async setUserRoutine(
+  //   @Param('id') id: string,
+  //   @Body() routineDto: RoutineDto,
+  // ) {
+  //   return this.usersService.setUserRoutine(id, routineDto);
+  // }
+
+  // @Delete(':id/routine')
+  // @ApiOperation({ summary: 'Eliminar la rutina de un usuario' })
+  // @ApiResponse({ status: 200, description: 'Rutina eliminada correctamente' })
+  // @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  // async deleteUserRoutine(@Param('id') id: string) {
+  //   return this.usersService.deleteUserRoutine(id);
+  // }
 }

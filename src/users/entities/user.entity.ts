@@ -1,5 +1,11 @@
 // src/users/entities/user.entity.ts
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum Role {
@@ -37,7 +43,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: Role,
-    default: Role.USER
+    default: Role.USER,
   })
   role: Role;
 
@@ -51,4 +57,10 @@ export class User {
   @ApiProperty({ example: '2023-01-01T00:00:00.000Z' })
   @UpdateDateColumn()
   updated_at: Date;
+
+  @Column({ type: 'jsonb', nullable: true, default: null })
+  routine: object;
+
+  @Column({ default: false })
+  has_routine: boolean;
 }

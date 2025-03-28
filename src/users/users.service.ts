@@ -18,13 +18,13 @@ export interface User {
 
 @Injectable()
 export class UsersService {
-  private supabase;
   private readonly logger = new Logger(UsersService.name);
+  private supabase;
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.get('SUPABASE_URL');
     const supabaseServiceKey = this.configService.get('SUPABASE_SERVICE_KEY');
-    
+
     if (!supabaseUrl || !supabaseServiceKey) {
       this.logger.error('Faltan variables de entorno de Supabase');
     } else {
@@ -35,7 +35,7 @@ export class UsersService {
 
   async create(userData: Omit<User, 'id' | 'created_at'>): Promise<User> {
     this.logger.log(`Creando nuevo usuario con email: ${userData.email}`);
-    
+
     try {
       const { data, error } = await this.supabase
         .from('users')
@@ -44,48 +44,52 @@ export class UsersService {
             ...userData,
             is_admin: userData.is_admin || false,
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
+            updated_at: new Date().toISOString(),
+          },
         ])
         .select();
-      
+
       if (error) {
         this.logger.error(`Error al crear usuario: ${error.message}`, error);
         throw error;
       }
-      
+
       this.logger.log(`Usuario creado con ID: ${data[0].id}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al crear usuario: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al crear usuario: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async findAll(): Promise<User[]> {
     this.logger.log('Buscando todos los usuarios');
-    
+
     try {
-      const { data, error } = await this.supabase
-        .from('users')
-        .select('*');
-      
+      const { data, error } = await this.supabase.from('users').select('*');
+
       if (error) {
         this.logger.error(`Error al buscar usuarios: ${error.message}`, error);
         throw error;
       }
-      
+
       this.logger.log(`Se encontraron ${data.length} usuarios`);
       return data;
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuarios: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al buscar usuarios: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async findOne(id: string): Promise<User | undefined> {
     this.logger.log(`Buscando usuario con ID: ${id}`);
-    
+
     try {
       const { data, error } = await this.supabase
         .from('users')
@@ -93,104 +97,165 @@ export class UsersService {
         .eq('id', id)
         .limit(1)
         .single();
-      
+
       if (error) {
         if (error.code === 'PGRST116') {
           // No se encontró el usuario
           this.logger.warn(`Usuario con ID ${id} no encontrado`);
           return undefined;
         }
-        
+
         this.logger.error(`Error al buscar usuario: ${error.message}`, error);
         throw error;
       }
-      
+
       this.logger.log(`Usuario encontrado: ${data.email}`);
       return data;
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuario: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al buscar usuario: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
     this.logger.log(`Buscando usuario con email: ${email}`);
-    
+
     try {
       const { data, error } = await this.supabase
         .from('users')
         .select('*')
         .eq('email', email)
         .limit(1);
-      
+
       if (error) {
-        this.logger.error(`Error al buscar usuario por email: ${error.message}`, error);
+        this.logger.error(
+          `Error al buscar usuario por email: ${error.message}`,
+          error,
+        );
         throw error;
       }
-      
+
       if (data.length === 0) {
         this.logger.warn(`Usuario con email ${email} no encontrado`);
         return undefined;
       }
-      
+
       this.logger.log(`Usuario encontrado: ${data[0].email}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al buscar usuario por email: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al buscar usuario por email: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async update(id: string, userData: Partial<User>): Promise<User | null> {
     this.logger.log(`Actualizando usuario con ID: ${id}`);
-    
+
     try {
       const { data, error } = await this.supabase
         .from('users')
         .update({
           ...userData,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', id)
         .select();
-      
+
       if (error) {
-        this.logger.error(`Error al actualizar usuario: ${error.message}`, error);
+        this.logger.error(
+          `Error al actualizar usuario: ${error.message}`,
+          error,
+        );
         throw error;
       }
-      
+
       if (data.length === 0) {
         this.logger.warn(`Usuario con ID ${id} no encontrado para actualizar`);
         return null;
       }
-      
+
       this.logger.log(`Usuario actualizado: ${data[0].email}`);
       return data[0];
     } catch (error) {
-      this.logger.error(`Error inesperado al actualizar usuario: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al actualizar usuario: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
 
   async remove(id: string): Promise<boolean> {
     this.logger.log(`Eliminando usuario con ID: ${id}`);
-    
+
     try {
-      const { error } = await this.supabase
-        .from('users')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await this.supabase.from('users').delete().eq('id', id);
+
       if (error) {
         this.logger.error(`Error al eliminar usuario: ${error.message}`, error);
         throw error;
       }
-      
+
       this.logger.log(`Usuario eliminado con ID: ${id}`);
       return true;
     } catch (error) {
-      this.logger.error(`Error inesperado al eliminar usuario: ${getErrorMessage(error)}`, error.stack);
+      this.logger.error(
+        `Error inesperado al eliminar usuario: ${getErrorMessage(error)}`,
+        error.stack,
+      );
       throw error;
     }
   }
+  // // Añade estos métodos
+
+  // async getUserRoutine(userId: string) {
+  //   const user = await this.findOne(userId);
+  //   if (!user) {
+  //     throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+  //   }
+
+  //   return {
+  //     routine: user.routine,
+  //     has_routine: user.has_routine,
+  //   };
+  // }
+
+  // async setUserRoutine(userId: string, routineDto: RoutineDto) {
+  //   const user = await this.findOne(userId);
+  //   if (!user) {
+  //     throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+  //   }
+
+  //   user.routine = routineDto.routine;
+  //   user.has_routine = routineDto.has_routine;
+
+  //   await this.usersRepository.save(user);
+
+  //   return {
+  //     routine: user.routine,
+  //     has_routine: user.has_routine,
+  //   };
+  // }
+
+  // async deleteUserRoutine(userId: string) {
+  //   const user = await this.findOne(userId);
+  //   if (!user) {
+  //     throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+  //   }
+
+  //   user.routine = null;
+  //   user.has_routine = false;
+
+  //   await this.usersRepository.save(user);
+
+  //   return {
+  //     message: 'Rutina eliminada correctamente',
+  //   };
+  // }
 }
